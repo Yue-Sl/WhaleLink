@@ -17,6 +17,16 @@
 
 ## 任务记录
 
+### WL-0054 — 首版最终本地审计与外部发布阻断
+
+- **状态：** BLOCKED
+- **目标与前置条件：** 完成当前工作树、发行检查清单、目标运行时和 Git remote 的最终本地审计，确定首版是否可诚实标记为正式发布。
+- **改动：** 无产品代码改动；审计当前 Git 状态、最近提交、发行检查清单、Docker/Podman/WSL 可用性和 remote 配置。
+- **关键命令：** `git status`；`git log`；读取 `docs/verification/release-checklist.md`；`Get-Command docker,podman,wsl`；`wsl --list --verbose`；`git remote -v`。
+- **验证证据：** 工作树干净，最新本地提交为 `93e25e1`。仅发现 WSL 客户端且没有已安装 Linux 发行版；未发现 Docker/Podman；仓库无 remote。发行检查清单仍明确保留真实 TUN/双节点、Linux Docker/systemd/回滚、跨用户 Pipe、远程 CI 和 GitHub Release 五类未验收项。
+- **风险/阻塞：** 当前主机无法在不安装系统级运行时的前提下执行 Linux Docker/systemd 或真实跨主机网络验收；无 remote 不能取得 CI 运行记录或创建 GitHub Release。安装 WSL/Docker、提供 Linux/Windows 测试环境、连接远程仓库均需要部署者授权或外部状态变化。
+- **下一步：** 部署者提供可访问的 Linux Docker/systemd 主机、隔离 Windows 双用户与双节点网络环境，以及远程仓库后，继续执行未勾选发布矩阵并更新本记录。
+
 ### WL-0053 — 凭据 ACL 加固后的发行候选重建
 
 - **状态：** PASS
