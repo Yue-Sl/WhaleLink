@@ -71,3 +71,4 @@ jobs:
           dotnet-version: 8.0.x
       - run: dotnet build apps/WhaleLink.Desktop/WhaleLink.Desktop.csproj --configuration Release
       - run: pwsh -NoProfile -File scripts/desktop-invite-payload-contract.ps1
+      - run: pwsh -NoProfile -File scripts/desktop-credential-acl-contract.ps1

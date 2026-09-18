@@ -17,6 +17,46 @@
 
 ## 任务记录
 
+### WL-0053 — 凭据 ACL 加固后的发行候选重建
+
+- **状态：** PASS
+- **目标与前置条件：** WL-0052 改变桌面与 daemon 凭据存储行为，必须生成对应发行候选而不能复用旧归档。
+- **改动：** 重跑完整本地回归、DPAPI/ACL 合同、Windows/Linux 打包、SBOM、校验清单和当前用户安装/卸载验收。
+- **关键命令：** workspace `fmt/test/clippy`；Server、daemon Pipe/restart、二维码、Desktop ACL 合同；Desktop Release build；两个打包脚本；归档结构/校验和复算；隔离安装卸载。
+- **验证证据：** `docs/verification/2026-09-18-credential-directory-acl.md`、`docs/verification/2026-09-18-license-release-gate.md`。20 项 Rust 测试通过；Windows 便携/安装包为 49/52 项、清单 102 条；Linux 包为 50 项、清单 51 条，全部复算一致。
+- **风险/阻塞：** 真实 Linux、双节点 TUN/Relay、跨用户 Pipe、远程 CI 和 GitHub Release 阻断项仍未关闭。
+- **下一步：** 创建本地增量提交；目标环境可用后执行剩余发布矩阵。
+
+### WL-0052 — Windows DPAPI 凭据目录的显式用户 ACL
+
+- **状态：** PASS
+- **目标与前置条件：** 规格要求 Windows 凭据在 DPAPI 之外受当前用户 ACL 保护；旧实现依赖 LocalAppData 默认继承，daemon 导入路径未显式设置 ACL。
+- **改动：** 桌面端保存前以当前用户 SID 设置受保护 DACL；Rust daemon 以 Owner Rights SDDL 保护当前用户创建的目录；Pipe 冒烟增加 daemon ACL 断言，Desktop ACL 合同脚本加入 Windows CI。
+- **关键命令：** Desktop Release build；`scripts/desktop-credential-acl-contract.ps1`；`cargo test/clippy -p whalelink-core -p whalelinkd`；`scripts/daemon-pipe-smoke.ps1`。
+- **验证证据：** `docs/verification/2026-09-18-credential-directory-acl.md`。Desktop DPAPI 目录的所有者和唯一允许主体均为当前用户；daemon 目录继承关闭、所有者为当前用户且唯一允许主体为 Owner Rights/current user；无 TUN 生命周期继续通过。
+- **风险/阻塞：** 目录 ACL 不替代跨 Windows 用户实际调用 Pipe 的拒绝测试；该项仍未验收。
+- **下一步：** 重跑全 workspace 和发行候选；在独立用户会话执行跨用户 Pipe ACL 验收。
+
+### WL-0051 — daemon Owner Rights ACL 冒烟首次语义断言
+
+- **状态：** FAIL
+- **目标与前置条件：** 为 daemon 新增受保护凭据目录 ACL 后首次运行 Pipe 冒烟。
+- **改动：** 无产品逻辑失败；断言误把 Owner Rights（`S-1-3-4`）当作非当前用户 SID。实际目录继承已关闭，Owner Rights 是目录当前所有者的权限主体。
+- **关键命令：** `scripts/daemon-pipe-smoke.ps1`。
+- **验证证据：** 初始错误“directory was not restricted to the current user”；后续验证增加目录所有者等于当前用户以及唯一允许项为 Owner Rights/current SID 的语义检查，见 WL-0052。
+- **风险/阻塞：** 该首次断言不得标为通过。
+- **下一步：** 见 WL-0052。
+
+### WL-0050 — 凭据目录 ACL 首次编译验证
+
+- **状态：** FAIL
+- **目标与前置条件：** 首次实现桌面端受保护 DACL。
+- **改动：** `Directory.SetAccessControl` 在目标 .NET API 中没有所用静态重载，导致编译失败；已改为 `DirectoryInfo.SetAccessControl`。
+- **关键命令：** Desktop Release build。
+- **验证证据：** 编译错误 `SetAccessControl method does not contain an overload that takes 2 arguments`；修正后构建和 ACL 合同通过，见 WL-0052。
+- **风险/阻塞：** 该首次编译不得标为通过。
+- **下一步：** 见 WL-0052。
+
 ### WL-0049 — 二维码与 HTTPS 加固后的发行候选重建
 
 - **状态：** PASS

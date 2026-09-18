@@ -16,4 +16,4 @@ toml.workspace = true
 whalelink-protocol = { path = "../whalelink-protocol" }
 
 [target.'cfg(windows)'.dependencies]
-windows-sys = { version = "0.61.2", features = ["Win32_Foundation", "Win32_Security_Cryptography"] }
+windows-sys = { version = "0.61.2", features = ["Win32_Foundation", "Win32_Security", "Win32_Security_Authorization", "Win32_Security_Cryptography"] }

@@ -1,4 +1,6 @@
+using System.Security.AccessControl;
 using System.Security.Cryptography;
+using System.Security.Principal;
 using System.Text;
 
 namespace WhaleLink.Desktop;
@@ -19,7 +21,7 @@ internal sealed class EnrollmentCredentialStore
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(roomId);
         var path = PathFor(roomId);
-        Directory.CreateDirectory(_directory);
+        EnsureCurrentUserOnlyDirectory();
         var protectedBytes = ProtectedData.Protect(
             Encoding.UTF8.GetBytes(enrollmentMaterial),
             optionalEntropy: null,
@@ -49,5 +51,22 @@ internal sealed class EnrollmentCredentialStore
     {
         var hash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(roomId))).ToLowerInvariant();
         return Path.Combine(_directory, $"{hash}.bin");
+    }
+
+    private void EnsureCurrentUserOnlyDirectory()
+    {
+        Directory.CreateDirectory(_directory);
+        var currentUser = WindowsIdentity.GetCurrent().User
+            ?? throw new InvalidOperationException("无法确定当前 Windows 用户。");
+        var security = new DirectorySecurity();
+        security.SetAccessRuleProtection(isProtected: true, preserveInheritance: false);
+        security.SetOwner(currentUser);
+        security.AddAccessRule(new FileSystemAccessRule(
+            currentUser,
+            FileSystemRights.FullControl,
+            InheritanceFlags.ContainerInherit | InheritanceFlags.ObjectInherit,
+            PropagationFlags.None,
+            AccessControlType.Allow));
+        new DirectoryInfo(_directory).SetAccessControl(security);
     }
 }

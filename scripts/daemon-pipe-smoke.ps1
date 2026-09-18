@@ -41,6 +41,14 @@ try {
     $enrollment = @{ network_name = $network; network_secret = $secret; peers = @('tcp://127.0.0.1:19000'); dhcp = $true; disable_upnp = $true }
     $imported = Send-Ipc 'enrollment.import' @{ room_id = $roomId; enrollment = $enrollment }
     if (-not $imported.ok) { throw ("Enrollment import failed: " + $imported.error.code + ' / ' + $imported.error.message) }
+    $credentialDirectory = Join-Path $credentialRoot 'WhaleLink\credentials'
+    $acl = Get-Acl -LiteralPath $credentialDirectory
+    if (-not $acl.AreAccessRulesProtected) { throw 'Daemon credential directory ACL inherited from its parent.' }
+    $currentSid = [Security.Principal.WindowsIdentity]::GetCurrent().User.Value
+    $ownerSid = $acl.GetOwner([Security.Principal.SecurityIdentifier]).Value
+    if ($ownerSid -ne $currentSid) { throw 'Daemon credential directory owner was not the current user.' }
+    $allowSids = @($acl.Access | Where-Object AccessControlType -eq 'Allow' | ForEach-Object { $_.IdentityReference.Translate([Security.Principal.SecurityIdentifier]).Value } | Select-Object -Unique)
+    if ($allowSids.Count -ne 1 -or ($allowSids[0] -ne $currentSid -and $allowSids[0] -ne 'S-1-3-4')) { throw 'Daemon credential directory was not restricted to the current user.' }
     $cliStart = & $cargo run --quiet --package whalelink-cli -- start --room-id $roomId
     if ($LASTEXITCODE -ne 0 -or $cliStart -notmatch 'starting') { throw 'CLI tunnel start failed.' }
     Start-Sleep -Milliseconds 750

@@ -214,6 +214,7 @@ impl EnrollmentStore {
             return Err(CoreError::Config("room_id cannot be empty".into()));
         }
         fs::create_dir_all(&self.directory)?;
+        protect_current_user_directory(&self.directory)?;
         let path = self.path_for(room_id);
         let plaintext = serde_json::to_vec(enrollment).map_err(|error| {
             CoreError::Config(format!("enrollment serialization failed: {error}"))
@@ -236,6 +237,68 @@ impl EnrollmentStore {
         let digest = format!("{:x}", Sha256::digest(room_id.as_bytes()));
         self.directory.join(format!("{digest}.bin"))
     }
+}
+
+/// Replaces inherited directory permissions with an owner-only DACL. The
+/// encrypted blob remains protected by DPAPI as a second, independent layer.
+#[cfg(windows)]
+fn protect_current_user_directory(directory: &Path) -> Result<(), CoreError> {
+    use std::{ffi::c_void, os::windows::ffi::OsStrExt, ptr};
+    use windows_sys::Win32::{
+        Foundation::LocalFree,
+        Security::{
+            Authorization::{
+                ConvertStringSecurityDescriptorToSecurityDescriptorW, SetNamedSecurityInfoW,
+                SDDL_REVISION_1, SE_FILE_OBJECT,
+            },
+            GetSecurityDescriptorDacl, DACL_SECURITY_INFORMATION,
+            PROTECTED_DACL_SECURITY_INFORMATION, PSECURITY_DESCRIPTOR,
+        },
+    };
+
+    let path: Vec<u16> = directory.as_os_str().encode_wide().chain(Some(0)).collect();
+    // OW resolves to the security descriptor's owner, which is the current
+    // user for the LocalAppData directory created by this process.
+    let sddl: Vec<u16> = "D:P(A;;GA;;;OW)".encode_utf16().chain(Some(0)).collect();
+    let mut descriptor: PSECURITY_DESCRIPTOR = ptr::null_mut();
+    let converted = unsafe {
+        ConvertStringSecurityDescriptorToSecurityDescriptorW(
+            sddl.as_ptr(),
+            SDDL_REVISION_1,
+            &mut descriptor,
+            ptr::null_mut(),
+        )
+    };
+    if converted == 0 {
+        return Err(CoreError::Io(std::io::Error::last_os_error()));
+    }
+    let mut present = 0;
+    let mut defaulted = 0;
+    let mut dacl = ptr::null_mut();
+    let got_dacl =
+        unsafe { GetSecurityDescriptorDacl(descriptor, &mut present, &mut dacl, &mut defaulted) };
+    if got_dacl == 0 || present == 0 || dacl.is_null() {
+        unsafe { LocalFree(descriptor.cast::<c_void>()) };
+        return Err(CoreError::Io(std::io::Error::last_os_error()));
+    }
+    let result = unsafe {
+        SetNamedSecurityInfoW(
+            path.as_ptr(),
+            SE_FILE_OBJECT,
+            DACL_SECURITY_INFORMATION | PROTECTED_DACL_SECURITY_INFORMATION,
+            ptr::null_mut(),
+            ptr::null_mut(),
+            dacl,
+            ptr::null(),
+        )
+    };
+    unsafe { LocalFree(descriptor.cast::<c_void>()) };
+    if result != 0 {
+        return Err(CoreError::Io(std::io::Error::from_raw_os_error(
+            result as i32,
+        )));
+    }
+    Ok(())
 }
 
 #[cfg(windows)]
