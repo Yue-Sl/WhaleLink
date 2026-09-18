@@ -19,13 +19,13 @@
 
 ### WL-0055 — GitHub 首次推送与远程 CI 启用
 
-- **状态：** IN PROGRESS
+- **状态：** PASS
 - **目标与前置条件：** 部署者已将现有 SSH 公钥添加到 GitHub；将本地 `main` 的首版工程推送至 `Yue-Sl/WhaleLink`，以便取得远程 CI 记录。
-- **改动：** 待配置 `origin` 为 GitHub SSH 地址并推送当前 `main`；成功后记录实际提交、remote URL 与远程验证结果。
-- **关键命令：** 已核对 `git status --short`、本地 HEAD 与目标仓库 heads；待执行 `git remote add`、`git branch -M main`、`git push -u origin main`。
-- **验证证据：** 本地工作树干净；目标仓库 SSH 查询成功且未返回远程分支。SSH 私钥与公钥均不写入本仓库或本工作日志。
-- **风险/阻塞：** 仍依赖外部 GitHub SSH 网络与用户已添加的公钥权限；若标准 SSH 端口连接被重置，按部署者指定切换至 `ssh.github.com:443`。
-- **下一步：** 提交本任务的进行中记录，配置 remote 并推送；成功后补充最终证据并再次推送工作日志。
+- **改动：** 已配置 `origin` 为 `git@github.com:Yue-Sl/WhaleLink.git`；将 `main` 推送并设置其跟踪 `origin/main`。
+- **关键命令：** `git remote add origin git@github.com:Yue-Sl/WhaleLink.git`；`git branch -M main`；`git push -u origin main`；`git ls-remote origin refs/heads/main`。
+- **验证证据：** 首次推送成功。远程 `refs/heads/main` 与本地提交 `52ff5c7c1affb619144ec3cbb24ad5452a4d6c6a` 一致；`git status --short` 无输出。SSH 私钥与公钥均未写入本仓库或本工作日志。
+- **风险/阻塞：** 标准 SSH 端口可用，未需切换至 SSH 443。远程 CI 已具备运行条件，但尚未取得实际 GitHub Actions 运行记录；其余 WL-0054 外部运行时/网络验收阻断项仍存在。
+- **下一步：** 推送本完成记录；在 GitHub Actions 出现首个运行结果后，将其链接为 CI 验证证据，并继续执行外部发布矩阵。
 
 ### WL-0054 — 首版最终本地审计与外部发布阻断
 
