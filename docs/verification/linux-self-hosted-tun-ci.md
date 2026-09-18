@@ -44,6 +44,17 @@ Runner 主机名、Relay、网络名、密钥、对端地址、MAC、路由表�
 根因，也不复制可能含环境信息的原始日志。修复需要该步骤的非敏感错误末段或已认证终端的同等
 构建输出；随后必须重跑工作流并以实际 TUN PASS 取代本状态。
 
+## 第二次远程执行（进行中）
+
+- 提交：`5c121dfa5365c7d5b92ce09b394746f3983b11a3`；
+- Run：`35407188078`，URL：`https://github.com/Yue-Sl/WhaleLink/actions/runs/35407188078`；
+- 该次提交将仓库 Variable 契约更正为部署者指定的 `WHALELINK_TEST_NETNAME`；
+- 截至 2026-09-18 的状态查询：前置检查 PASS，`Build Server image` 为 IN PROGRESS，真实
+  TUN 步骤为 PENDING。
+
+该项尚无构建或 TUN 的完成结论；后续记录必须使用 Actions 的最终状态，不可由部署者的缓存
+预期替代。
+
 ## 入库前静态验证
 
 - 已运行 `git diff --check`，通过；

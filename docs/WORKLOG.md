@@ -23,7 +23,7 @@
 - **目标与前置条件：** 部署者已确认 Runner 可用并要求在使用服务器本地 Rust 镜像缓存后重跑。测试输入应保存为受保护的 GitHub Actions Variables/Secret，网络名变量名以部署者指定的 `WHALELINK_TEST_NETNAME` 为准。
 - **改动：** 待将 Linux 工作流从过时的 `WHALELINK_TEST_NETWORK` 改为 `WHALELINK_TEST_NETNAME`，同步非敏感配置契约并推送触发新 Run。
 - **关键命令：** `git diff --check`；敏感值扫描；`git push`；GitHub Actions Run/Jobs 只读状态查询。
-- **验证证据：** WL-0056 的 Run `35357585207` 前置检查通过、镜像构建失败、TUN 步骤跳过；本机未安装 GitHub CLI，无法在本地写入或查询 GitHub Actions Variables/Secret。
+- **验证证据：** WL-0056 的 Run `35357585207` 前置检查通过、镜像构建失败、TUN 步骤跳过；变量名修正后的提交 `5c121dfa5365c7d5b92ce09b394746f3983b11a3` 已触发 Run `35407188078`（`https://github.com/Yue-Sl/WhaleLink/actions/runs/35407188078`）。截至本次记录，第二次 Run 的前置检查 PASS，`Build Server image` 仍为 IN PROGRESS，TUN 步骤为 PENDING。本机未安装 GitHub CLI，无法在本地写入或查询 GitHub Actions Variables/Secret。
 - **风险/阻塞：** 真实测试参数绝不进入 Git；若仓库尚未配置 `WHALELINK_TEST_RELAY`、`WHALELINK_TEST_NETNAME`、`WHALELINK_TEST_PEER` 与 `WHALELINK_TEST_SECRET`，远程脚本将以非敏感错误停止。该项需仓库管理员在 GitHub 设置中保存这些值，或提供可用的认证工具。
 - **下一步：** 推送变量名修正以触发 CI，读取构建和 TUN 结果；若缺少受保护参数，记录缺失但不记录值。
 
