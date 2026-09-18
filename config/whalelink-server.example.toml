@@ -1,0 +1,22 @@
+[[rooms]]
+id = "alpha"
+display_name = "Alpha room"
+
+[rooms.data_plane]
+network_name = "whalelink-alpha"
+# The value is read from the protected service environment at startup, not TOML.
+network_secret_env = "WHALELINK_ALPHA_NETWORK_SECRET"
+peers = ["tcp://relay.example.net:11010"]
+dhcp = true
+disable_upnp = true
+
+[[rooms]]
+id = "bravo"
+display_name = "Bravo room"
+
+[rooms.data_plane]
+network_name = "whalelink-bravo"
+network_secret_env = "WHALELINK_BRAVO_NETWORK_SECRET"
+peers = ["tcp://relay.example.net:11010"]
+dhcp = true
+disable_upnp = true

@@ -1,0 +1,22 @@
+services:
+  whalelink-server:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile.server
+    env_file:
+      # Copy config/server.example.env outside the repository and replace every placeholder.
+      - ${WHALELINK_DEPLOY_DIR:?set an absolute protected deployment directory}/server.env
+    environment:
+      WHALELINK_BIND: "0.0.0.0:8787"
+      WHALELINK_STATE_PATH: "/var/lib/whalelink/state.json"
+      WHALELINK_CONFIG: "/etc/whalelink/server.toml"
+    volumes:
+      - ${WHALELINK_DEPLOY_DIR:?set an absolute protected deployment directory}/server.toml:/etc/whalelink/server.toml:ro
+      - whalelink-state:/var/lib/whalelink
+    ports:
+      # Keep the control plane loopback-only until a TLS reverse proxy is configured.
+      - "127.0.0.1:8787:8787"
+    restart: unless-stopped
+
+volumes:
+  whalelink-state:

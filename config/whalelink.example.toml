@@ -1,0 +1,13 @@
+# Non-sensitive local daemon configuration. Keep enrollment material out of this file.
+# v0 files with the same `[easytier]` structure migrate in memory to v1.
+schema_version = 1
+
+[easytier]
+# Set an absolute path to a SHA-256-verified binary obtained from docs/easytier-lock.toml.
+executable = "C:/Program Files/WhaleLink/vendor/easytier/easytier-core.exe"
+# Do not place server URLs, room names, or secrets in this file. The daemon
+# receives per-room data-plane arguments only after a user redeems an invite.
+arguments = []
+
+[diagnostics]
+redact_sensitive_values = true

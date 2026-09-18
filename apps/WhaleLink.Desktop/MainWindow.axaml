@@ -1,0 +1,65 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="WhaleLink.Desktop.MainWindow"
+        Width="840" Height="650" MinWidth="640" MinHeight="460"
+        Title="WhaleLink">
+  <Grid Margin="28" RowDefinitions="Auto,Auto,*,Auto">
+    <TextBlock FontSize="28" FontWeight="SemiBold" Text="WhaleLink v3" />
+    <TextBlock Grid.Row="1" Margin="0,8,0,20" TextWrapping="Wrap"
+               Text="本桌面端仅通过当前用户的本地 Named Pipe 调用 WhaleLink 守护进程。" />
+    <TabControl Grid.Row="2">
+      <TabItem Header="客户端">
+        <ScrollViewer>
+          <StackPanel Margin="18" Spacing="10">
+            <TextBlock FontWeight="SemiBold" Text="本地服务状态" />
+            <TextBlock x:Name="StatusText" Text="正在检查…" TextWrapping="Wrap" />
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <Button Click="CheckStatus" Content="刷新状态" />
+              <Button Click="ExportDiagnostics" Content="查看脱敏诊断" />
+            </StackPanel>
+            <Separator Margin="0,8" />
+            <TextBlock FontWeight="SemiBold" Text="加入房间" />
+            <TextBox x:Name="ServerUrl" Watermark="https://你的服务器" />
+            <TextBox x:Name="InviteCode" Watermark="邀请码" />
+            <Button HorizontalAlignment="Left" Click="RedeemInvite" Content="兑换并安全保存" />
+            <TextBox x:Name="RoomId" Watermark="房间 ID（兑换成功后自动填写）" />
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <Button Click="ConnectRoom" Content="启动连接" />
+              <Button Click="DisconnectRoom" Content="停止连接" />
+            </StackPanel>
+          </StackPanel>
+        </ScrollViewer>
+      </TabItem>
+      <TabItem Header="管理员">
+        <ScrollViewer>
+          <StackPanel Margin="18" Spacing="10">
+            <TextBlock FontWeight="SemiBold" Text="控制面管理" />
+            <TextBox x:Name="AdminServerUrl" Watermark="https://你的服务器" />
+            <TextBox x:Name="AdminToken" PasswordChar="●" Watermark="管理员令牌（仅保留在本次进程内）" />
+            <Button HorizontalAlignment="Left" Click="LoadRooms" Content="加载固定房间" />
+            <ComboBox x:Name="AdminRoom" SelectionChanged="AdminRoomChanged" PlaceholderText="选择一个固定房间" />
+            <TextBlock x:Name="AdminStatusText" TextWrapping="Wrap" />
+            <Separator Margin="0,8" />
+            <TextBlock FontWeight="SemiBold" Text="邀请码" />
+            <ComboBox x:Name="InviteLifetime" SelectedIndex="1">
+              <ComboBoxItem Content="15 分钟" Tag="15" />
+              <ComboBoxItem Content="1 小时" Tag="60" />
+              <ComboBoxItem Content="24 小时" Tag="1440" />
+            </ComboBox>
+            <Button HorizontalAlignment="Left" Click="CreateInvite" Content="创建一次性邀请码" />
+            <TextBox x:Name="IssuedInvite" IsReadOnly="True" Watermark="邀请码仅在创建后显示一次" />
+            <TextBox x:Name="InviteIdToRevoke" Watermark="要撤销的邀请码 ID" />
+            <Button HorizontalAlignment="Left" Click="RevokeInvite" Content="撤销邀请码" />
+            <Separator Margin="0,8" />
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <Button Click="LoadMembers" Content="查看成员" />
+              <Button Click="RotateCredentials" Content="轮换凭据" />
+            </StackPanel>
+            <TextBox x:Name="MembersText" IsReadOnly="True" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="92" Watermark="成员状态显示在这里" />
+          </StackPanel>
+        </ScrollViewer>
+      </TabItem>
+    </TabControl>
+    <TextBlock Grid.Row="3" Margin="0,18,0,0" Opacity="0.7" Text="管理员令牌不保存；邀请码和入网凭据不写入日志或诊断。" />
+  </Grid>
+</Window>

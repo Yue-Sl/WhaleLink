@@ -1,0 +1,18 @@
+[package]
+name = "whalelink-server"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+axum.workspace = true
+chrono.workspace = true
+rand.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+sha2.workspace = true
+tokio.workspace = true
+toml.workspace = true
+tower.workspace = true
+uuid.workspace = true
+whalelink-protocol = { path = "../../crates/whalelink-protocol" }

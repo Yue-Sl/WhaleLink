@@ -1,0 +1,10 @@
+# Generated per fixed room; do not commit real network_secret values.
+# Validate with: easytier-core --config-file <this-file> --check-config
+
+network_name = "REPLACE_WITH_ROOM_NETWORK_NAME"
+network_secret = "REPLACE_WITH_HIGH_ENTROPY_ROOM_SECRET"
+dhcp = true
+peers = ["REPLACE_WITH_RELAY_URL"] # e.g. tcp://relay.example.net:11010
+disable_upnp = true
+rpc_portal = "127.0.0.1:0"
+console_log_level = "warn"

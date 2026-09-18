@@ -1,0 +1,13 @@
+.git
+.github
+.whalelink
+.nuget
+artifacts
+target
+vendor
+easytier-*.zip
+**/bin
+**/obj
+*.secret
+*.token
+*.local.toml

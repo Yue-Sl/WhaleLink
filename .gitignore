@@ -1,0 +1,18 @@
+# Build outputs
+/target/
+/**/bin/
+/**/obj/
+/.vs/
+/.nuget/
+
+# Local runtime state and secrets
+/.whalelink/
+*.secret
+*.token
+*.local.toml
+
+# Downloaded third-party binaries are verified during packaging, never committed.
+/vendor/easytier/
+/artifacts/
+/easytier-windows-x86_64-v2.6.4.zip
+/easytier-linux-x86_64-v2.6.4.zip

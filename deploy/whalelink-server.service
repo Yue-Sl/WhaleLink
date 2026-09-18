@@ -1,0 +1,21 @@
+[Unit]
+Description=WhaleLink control plane
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=whalelink
+Group=whalelink
+EnvironmentFile=/etc/whalelink/server.env
+ExecStart=/usr/local/bin/whalelink-server
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/whalelink
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,71 @@
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  rust:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@1.85.1
+        with:
+          components: rustfmt, clippy
+      - run: cargo fmt --all -- --check
+      - run: cargo clippy --workspace --all-targets -- -D warnings
+      - run: cargo test --workspace
+
+  windows-smoke:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@1.85.1
+      - name: Stage verified EasyTier runtime
+        shell: pwsh
+        run: |
+          $url = 'https://github.com/EasyTier/EasyTier/releases/download/v2.6.4/easytier-windows-x86_64-v2.6.4.zip'
+          $expected = '27af91e270e554709b048bd32327fefd2dfce5062ae1e8701af7550c6f525f84'
+          Invoke-WebRequest -Uri $url -OutFile easytier-windows-x86_64-v2.6.4.zip
+          if ((Get-FileHash easytier-windows-x86_64-v2.6.4.zip -Algorithm SHA256).Hash.ToLowerInvariant() -ne $expected) { throw 'EasyTier archive hash mismatch.' }
+          Expand-Archive easytier-windows-x86_64-v2.6.4.zip -DestinationPath vendor/easytier/v2.6.4 -Force
+      - run: powershell -NoProfile -ExecutionPolicy Bypass -File scripts/server-smoke.ps1
+      - run: powershell -NoProfile -ExecutionPolicy Bypass -File scripts/daemon-pipe-smoke.ps1
+
+  linux-container:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build --file deploy/Dockerfile.server --tag whalelink-server:ci .
+
+  linux-systemd-bundle:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@1.85.1
+      - run: cargo build --locked --release --package whalelink-server
+      - name: Stage systemd deployment payload
+        run: |
+          mkdir -p dist/usr/local/bin dist/usr/lib/systemd/system dist/etc/whalelink
+          install -m 0755 target/release/whalelink-server dist/usr/local/bin/whalelink-server
+          install -m 0644 deploy/whalelink-server.service dist/usr/lib/systemd/system/whalelink-server.service
+          install -m 0644 config/whalelink-server.example.toml dist/etc/whalelink/server.toml.example
+          install -m 0644 config/server.example.env dist/etc/whalelink/server.env.example
+          tar -C dist -czf whalelink-server-linux-x64-systemd.tar.gz .
+          sha256sum whalelink-server-linux-x64-systemd.tar.gz > SHA256SUMS.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: whalelink-server-linux-x64-systemd
+          path: |
+            whalelink-server-linux-x64-systemd.tar.gz
+            SHA256SUMS.txt
+
+  desktop:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+      - run: dotnet build apps/WhaleLink.Desktop/WhaleLink.Desktop.csproj --configuration Release
