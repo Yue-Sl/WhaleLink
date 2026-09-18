@@ -142,7 +142,13 @@ impl EasyTierProcess {
     }
 
     pub async fn stop(&mut self) -> Result<(), CoreError> {
-        let child = self.child.as_mut().ok_or(CoreError::NotRunning)?;
+        if self.child.is_none() {
+            return Err(CoreError::NotRunning);
+        }
+        if self.observe_exit()? {
+            return Ok(());
+        }
+        let child = self.child.as_mut().expect("child was checked above");
         child.kill().await?;
         self.child = None;
         Ok(())
@@ -150,6 +156,20 @@ impl EasyTierProcess {
 
     pub fn is_running(&self) -> bool {
         self.child.is_some()
+    }
+
+    /// Reaps an exited child and reports whether it ended since the previous
+    /// observation. Supervisors call this before reporting health or deciding
+    /// whether a restart is necessary.
+    pub fn observe_exit(&mut self) -> Result<bool, CoreError> {
+        let exited = match self.child.as_mut() {
+            Some(child) => child.try_wait()?.is_some(),
+            None => false,
+        };
+        if exited {
+            self.child = None;
+        }
+        Ok(exited)
     }
 }
 
@@ -357,6 +377,24 @@ mod tests {
         assert!(state.easytier_running);
         assert_eq!(state.last_error, None);
         fs::remove_file(path).unwrap();
+    }
+
+    #[cfg(windows)]
+    #[tokio::test]
+    async fn exited_child_is_reaped_before_supervisor_restart() {
+        let mut process = EasyTierProcess::new(EasyTierConfig {
+            executable: PathBuf::from(r"C:\Windows\System32\cmd.exe"),
+            arguments: vec!["/C".into(), "exit 0".into()],
+        });
+        process.start().await.unwrap();
+        for _ in 0..20 {
+            if process.observe_exit().unwrap() {
+                break;
+            }
+            std::thread::sleep(std::time::Duration::from_millis(25));
+        }
+        assert!(!process.is_running());
+        assert!(matches!(process.stop().await, Err(CoreError::NotRunning)));
     }
 
     #[cfg(windows)]

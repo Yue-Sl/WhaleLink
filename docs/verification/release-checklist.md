@@ -3,7 +3,7 @@
 所有发布阻断项必须通过才能发布 GitHub Release。已勾选项只表示当前有本地、可复查证据，
 不替代尚未执行的目标环境验收。
 
-- [x] 本地 Rust 格式、Clippy、19 个测试、Server/daemon 进程冒烟与 Windows GUI Release 构建通过；远程 CI 尚未有运行记录。
+- [x] 本地 Rust 格式、Clippy、20 个测试、Server/daemon 进程冒烟（含异常退出重启）与 Windows GUI Release 构建通过；远程 CI 尚未有运行记录。
 - [x] Windows/Linux EasyTier v2.6.4 资产按 `docs/easytier-lock.toml` 校验 SHA-256。
 - [x] `scripts/package-windows.ps1` 已生成 Windows 便携 ZIP、当前用户安装 ZIP 与 102 条 `SHA256SUMS.txt`。
 - [x] `scripts/package-linux-deployment.ps1` 已生成 Linux 源码部署 ZIP；该包排除本机构建缓存和会自引用包哈希的工作日志/验证报告。

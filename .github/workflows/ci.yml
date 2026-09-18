@@ -32,6 +32,7 @@ jobs:
           Expand-Archive easytier-windows-x86_64-v2.6.4.zip -DestinationPath vendor/easytier/v2.6.4 -Force
       - run: powershell -NoProfile -ExecutionPolicy Bypass -File scripts/server-smoke.ps1
       - run: powershell -NoProfile -ExecutionPolicy Bypass -File scripts/daemon-pipe-smoke.ps1
+      - run: powershell -NoProfile -ExecutionPolicy Bypass -File scripts/daemon-restart-smoke.ps1
 
   linux-container:
     runs-on: ubuntu-latest

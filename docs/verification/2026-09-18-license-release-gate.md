@@ -24,13 +24,13 @@
 - `scripts/package-windows.ps1` 通过，生成便携 ZIP 和当前用户安装 ZIP。两个归档均含
   EasyTier LGPL、GNU GPL v3、SPDX 2.3 SBOM 与部署说明。
 - Windows 便携包 SHA-256：
-  `6385bd2a8df2bbe209a2c84ac72243bcf9abc945a510bd42bdcad057780fcf0a`。
+  `037e75c6c81c41221d12beea3242c135f2a8a024c5d60bb3d210583ab67ae272`。
 - Windows 安装包 SHA-256：
-  `74bf09a7dfa5a6efe0995ce316ceae35f7c8646c3fab4e10577d8183a035af90`。
+  `c1f196b8630c47b2a5a786fec642b5ceadf0ac8cd483dbe5bafd325d87e74dae`。
 - Windows `SHA256SUMS.txt` 有 102 条，抽取的两份归档哈希均与文件实际哈希一致。
 - `scripts/package-linux-deployment.ps1` 通过，生成 Linux 源码部署 ZIP。
 - Linux 部署包 SHA-256：
-  `6514a7e2ef6063a27ca7a44f4454640ab9b2e8e185b2cc78bc4249d454a9b8b6`。
+  `adef1a2d34099c1cbe9ccc81cb310831f368ed24ee069bec039371ecc264125e`。
 - Linux `SHA256SUMS.txt` 有 50 条；归档有 49 个条目，含 Dockerfile、systemd unit、部署说明、
   两份许可证、锁定 EasyTier ZIP 和 SPDX 2.3 SBOM。扫描确认归档内没有
   `bin/`、`obj/`、`target/`、`.nuget/`、`artifacts/` 或 `vendor/` 构建缓存。

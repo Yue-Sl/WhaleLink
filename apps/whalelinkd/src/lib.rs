@@ -1,3 +1,4 @@
+use std::time::{Duration, Instant};
 use uuid::Uuid;
 use whalelink_protocol::{
     ApiEnvelope, ApiError, DataPlaneEnrollment, ErrorCode, IpcRequest, IpcResponse,
@@ -139,6 +140,8 @@ fn create_current_user_pipe(
 struct ManagedDaemon {
     easytier: whalelink_core::EasyTierConfig,
     process: Option<whalelink_core::EasyTierProcess>,
+    active_room_id: Option<String>,
+    last_restart_attempt: Option<Instant>,
 }
 
 #[cfg(windows)]
@@ -160,6 +163,8 @@ impl ManagedDaemon {
         Self {
             easytier,
             process: None,
+            active_room_id: None,
+            last_restart_attempt: None,
         }
     }
 
@@ -177,10 +182,7 @@ impl ManagedDaemon {
                 request_id,
                 serde_json::json!({ "protocol_version": IPC_PROTOCOL_VERSION }),
             ),
-            "health" | "status.get" => success(
-                request_id,
-                serde_json::json!({ "status": if self.process.is_some() { "running" } else { "stopped" } }),
-            ),
+            "health" | "status.get" => self.status_response(request_id).await,
             "enrollment.import" => {
                 match serde_json::from_value::<ImportEnrollmentParams>(request.params) {
                     Ok(params) => match whalelink_core::EnrollmentStore::current_user()
@@ -209,44 +211,39 @@ impl ManagedDaemon {
                 ),
             },
             "tunnel.stop" => self.stop_tunnel(request_id).await,
-            "diagnostics.export" => success(request_id, diagnostic_summary(self.process.is_some())),
+            "diagnostics.export" => {
+                let running = self.refresh_process().await;
+                success(request_id, diagnostic_summary(running))
+            }
             _ => failure(request_id, ErrorCode::NotFound, "unknown IPC method"),
         }
     }
 
     async fn start_tunnel(&mut self, request_id: Uuid, room_id: &str) -> IpcResponse {
-        if self.process.is_some() {
+        if self.refresh_process().await {
             return failure(
                 request_id,
                 ErrorCode::Forbidden,
                 "an EasyTier tunnel is already running",
             );
         }
-        let enrollment = match whalelink_core::EnrollmentStore::current_user()
-            .and_then(|store| store.load(room_id))
-        {
-            Ok(enrollment) => enrollment,
-            Err(_) => {
-                return failure(
-                    request_id,
-                    ErrorCode::NotFound,
-                    "no protected enrollment for room",
-                )
-            }
-        };
-        let mut config = self.easytier.clone();
-        config.arguments.extend(easytier_arguments(&enrollment));
-        let mut process = whalelink_core::EasyTierProcess::new(config);
-        match process.start().await {
+        match self.launch_room(room_id).await {
             Ok(()) => {
-                self.process = Some(process);
+                self.active_room_id = Some(room_id.to_owned());
                 success(request_id, serde_json::json!({ "status": "starting" }))
             }
+            Err(ErrorCode::NotFound) => failure(
+                request_id,
+                ErrorCode::NotFound,
+                "no protected enrollment for room",
+            ),
             Err(_) => failure(request_id, ErrorCode::Internal, "could not start EasyTier"),
         }
     }
 
     async fn stop_tunnel(&mut self, request_id: Uuid) -> IpcResponse {
+        self.active_room_id = None;
+        self.last_restart_attempt = None;
         let Some(mut process) = self.process.take() else {
             return failure(
                 request_id,
@@ -258,6 +255,54 @@ impl ManagedDaemon {
             Ok(()) => success(request_id, serde_json::json!({ "status": "stopped" })),
             Err(_) => failure(request_id, ErrorCode::Internal, "could not stop EasyTier"),
         }
+    }
+
+    async fn status_response(&mut self, request_id: Uuid) -> IpcResponse {
+        let running = self.refresh_process().await;
+        success(
+            request_id,
+            serde_json::json!({ "status": if running { "running" } else { "stopped" } }),
+        )
+    }
+
+    /// Restarts the last explicitly requested room after an unexpected child
+    /// exit. Restarts are only attempted from an IPC observation and are
+    /// throttled, avoiding a tight respawn loop for a persistently invalid
+    /// data-plane binary or enrollment.
+    async fn refresh_process(&mut self) -> bool {
+        let exited = match self.process.as_mut() {
+            Some(process) => process.observe_exit().unwrap_or(true),
+            None => false,
+        };
+        if exited {
+            self.process = None;
+        }
+        if self.process.is_some() {
+            return true;
+        }
+        let Some(room_id) = self.active_room_id.clone() else {
+            return false;
+        };
+        if self
+            .last_restart_attempt
+            .is_some_and(|attempt| attempt.elapsed() < Duration::from_secs(1))
+        {
+            return false;
+        }
+        self.last_restart_attempt = Some(Instant::now());
+        self.launch_room(&room_id).await.is_ok()
+    }
+
+    async fn launch_room(&mut self, room_id: &str) -> Result<(), ErrorCode> {
+        let enrollment = whalelink_core::EnrollmentStore::current_user()
+            .and_then(|store| store.load(room_id))
+            .map_err(|_| ErrorCode::NotFound)?;
+        let mut config = self.easytier.clone();
+        config.arguments.extend(easytier_arguments(&enrollment));
+        let mut process = whalelink_core::EasyTierProcess::new(config);
+        process.start().await.map_err(|_| ErrorCode::Internal)?;
+        self.process = Some(process);
+        Ok(())
     }
 }
 

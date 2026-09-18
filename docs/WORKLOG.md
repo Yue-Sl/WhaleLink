@@ -17,6 +17,36 @@
 
 ## 任务记录
 
+### WL-0046 — 异常重启版本的发行候选重建
+
+- **状态：** PASS
+- **目标与前置条件：** WL-0045 改变 daemon 生命周期与 CI 配置；先前归档不能代表当前代码。
+- **改动：** 重跑完整 workspace 回归、桌面 Release 构建和 Windows/Linux 打包；重新生成 SBOM 与 SHA-256 清单；从新 Windows 安装 ZIP 执行隔离安装/载荷检查/卸载。
+- **关键命令：** `cargo fmt/test/clippy`；Server、daemon Pipe、daemon restart 冒烟；Desktop Release build；两个打包脚本；ZIP 结构与逐条 SHA-256 复算；当前用户安装/卸载验收。
+- **验证证据：** `docs/verification/2026-09-18-daemon-restart.md`、`docs/verification/2026-09-18-license-release-gate.md`。20 项 Rust 测试通过；Windows 便携/安装包为 49/52 项、清单 102 条；Linux 包为 49 项、清单 50 条，均复算一致。
+- **风险/阻塞：** 当前候选仍不等同于 Linux Docker/systemd、真实 TUN/跨主机或远程 CI/GitHub Release 通过；这些阻断项见 WL-0038。
+- **下一步：** 创建本地增量源代码提交；在可用目标环境执行剩余发行矩阵。
+
+### WL-0045 — daemon 异常退出后的受管重启
+
+- **状态：** PASS
+- **目标与前置条件：** M0 要求验证受管进程异常重启；旧 daemon 只检查 `Option` 存在性，子进程退出后可能错误显示为运行。
+- **改动：** Core 增加子进程退出回收；daemon 在本地状态观察时按最后活动房间受控重启，并对持续失败节流；显式停止清除重启意图。新增无 TUN 重启烟测和 Windows CI 步骤。
+- **关键命令：** `cargo test -p whalelink-core -p whalelinkd`；`cargo clippy -p whalelink-core -p whalelinkd --all-targets -- -D warnings`；`scripts/daemon-pipe-smoke.ps1`；`scripts/daemon-restart-smoke.ps1`。
+- **验证证据：** `docs/verification/2026-09-18-daemon-restart.md`。临时子进程异常结束后，IPC 健康状态触发替代进程启动并返回 `running`；替代进程可由 IPC 停止。
+- **风险/阻塞：** 重启在 IPC 观察时触发，非后台轮询；真实 TUN、跨主机和 Relay 恢复仍未验证。
+- **下一步：** 重跑完整 workspace 回归与发行包；在独立双节点环境验证真实数据面恢复。
+
+### WL-0044 — 异常重启烟测首次启动同步
+
+- **状态：** FAIL
+- **目标与前置条件：** 首次执行新增异常重启烟测。
+- **改动：** 无产品代码改动；测试在首次 Rust 编译完成前只等待单次 5 秒 Pipe 连接，导致超时。
+- **关键命令：** `scripts/daemon-restart-smoke.ps1`。
+- **验证证据：** `NamedPipeClientStream.Connect(5000)` 超时；进程检查确认没有残留 daemon。随后加入 30 次有界 Pipe 就绪等待，见 WL-0045。
+- **风险/阻塞：** 该首次执行不得标记为通过。
+- **下一步：** 见 WL-0045 的修正后验证。
+
 ### WL-0043 — 可追溯首个本地源代码提交
 
 - **状态：** PASS
