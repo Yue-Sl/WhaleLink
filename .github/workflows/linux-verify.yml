@@ -1,0 +1,56 @@
+name: linux-verify
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/linux-verify.yml'
+      - 'scripts/easytier-linux-tun-smoke.sh'
+      - 'deploy/**'
+      - 'apps/whalelink-server/**'
+      - 'crates/**'
+      - 'Cargo.lock'
+      - 'Cargo.toml'
+
+permissions:
+  contents: read
+
+jobs:
+  verify-linux-runtime:
+    name: build-server-and-verify-tun
+    runs-on: [self-hosted, linux, whalelink-linux]
+    timeout-minutes: 30
+    env:
+      # Empty path selects easytier-core from PATH. A protected repository
+      # variable may supply an absolute path when the runner needs one.
+      EASYTIER_CORE_PATH: ${{ vars.WHALELINK_EASYTIER_CORE_PATH }}
+      EASYTIER_EXPECTED_VERSION: '2.6.4'
+      EASYTIER_TEST_RELAY: ${{ vars.WHALELINK_TEST_RELAY }}
+      EASYTIER_TEST_NETWORK: ${{ vars.WHALELINK_TEST_NETWORK }}
+      EASYTIER_TEST_PEER: ${{ vars.WHALELINK_TEST_PEER }}
+      EASYTIER_TEST_SECRET: ${{ secrets.WHALELINK_TEST_SECRET }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify protected runner prerequisites
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -c /dev/net/tun
+          sudo -n true
+          command -v docker
+          command -v systemctl
+          command -v easytier-core >/dev/null || test -n "$EASYTIER_CORE_PATH"
+          docker version --format '{{.Server.Version}}'
+
+      - name: Build Server image
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker build --file deploy/Dockerfile.server --tag "whalelink-server:${GITHUB_SHA}" .
+          docker image inspect "whalelink-server:${GITHUB_SHA}" >/dev/null
+
+      - name: Verify real EasyTier TUN peer path
+        shell: bash
+        run: bash scripts/easytier-linux-tun-smoke.sh

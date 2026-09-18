@@ -17,6 +17,16 @@
 
 ## 任务记录
 
+### WL-0056 — 自托管 Linux CI 与真实双节点 TUN 门禁
+
+- **状态：** IN PROGRESS
+- **目标与前置条件：** 部署者确认带有 `self-hosted`、`linux`、`whalelink-linux` 标签的 Runner 已在线，且 Docker、systemd 和锁定的 EasyTier v2.6.4 可用；隔离的外连双节点测试环境已由部署者自测。
+- **改动：** 待新增仅面向自托管 Runner 的 Linux 工作流、受机密保护的 EasyTier TUN 连通脚本与非敏感配置说明；构建 Server 镜像并测试到预置对端的覆盖网络连通性。
+- **关键命令：** 待执行 `bash -n`、ShellCheck（若 Runner/本机可用）、`docker build` 与 GitHub Actions 实际运行；测试参数只从 Actions Variables/Secrets 注入。
+- **验证证据：** 本地已审阅现有 `deploy/Dockerfile.server`、EasyTier v2.6.4 锁定文件、Windows 双节点回环脚本与发行门禁。任何真实 Relay、网络名、密钥、对端地址或运行日志均不得提交。
+- **风险/阻塞：** 实际 TUN 测试需要 Runner 有免交互 sudo 与 `/dev/net/tun` 权限，以及仓库已配置指定 Variables/Secret；提交前尚无远程 Actions 运行证据。
+- **下一步：** 实现并本地做静态校验，推送以触发自托管工作流；读取实际运行结果后完成或如实标记阻断。
+
 ### WL-0055 — GitHub 首次推送与远程 CI 启用
 
 - **状态：** PASS
