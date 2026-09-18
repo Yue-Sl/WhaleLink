@@ -1,6 +1,6 @@
 # 自托管 Linux 真实 TUN CI 门禁
 
-**状态：** PENDING REMOTE EXECUTION  
+**状态：** FAIL（首次远程执行在镜像构建阶段停止）  
 **范围：** GitHub Actions Runner 标签为 `self-hosted`、`linux`、`whalelink-linux` 的受保护主机。
 
 `/.github/workflows/linux-verify.yml` 在受保护的 `main` 推送与手动触发时执行以下门禁：
@@ -30,6 +30,19 @@ Actions 日志、诊断包或本报告：
 
 首次成功运行后，在此追加 Actions run URL、提交 SHA、UTC 时间和各门禁的 PASS 摘要。不要记录
 Runner 主机名、Relay、网络名、密钥、对端地址、MAC、路由表或原始日志。
+
+## 首次远程执行（2026-09-18）
+
+- 提交：`52365101da6f6df4b6acd7f8c76857f4add52ce3`；
+- Run：`35357585207`，URL：`https://github.com/Yue-Sl/WhaleLink/actions/runs/35357585207`；
+- `Verify protected runner prerequisites`：PASS，证明指定标签 Runner、`/dev/net/tun`、免交互
+  `sudo`、Docker、systemd 工具和 EasyTier 可发现性均通过前置检查；
+- `Build Server image`：FAIL（退出码 1）；
+- `Verify real EasyTier TUN peer path`：SKIPPED，未因构建失败而错误地宣称通过。
+
+公开 Checks API 仅返回退出码；Actions 原始日志下载要求仓库管理员权限。因此该报告不推断构建
+根因，也不复制可能含环境信息的原始日志。修复需要该步骤的非敏感错误末段或已认证终端的同等
+构建输出；随后必须重跑工作流并以实际 TUN PASS 取代本状态。
 
 ## 入库前静态验证
 

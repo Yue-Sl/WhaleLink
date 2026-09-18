@@ -19,13 +19,13 @@
 
 ### WL-0056 — 自托管 Linux CI 与真实双节点 TUN 门禁
 
-- **状态：** IN PROGRESS
+- **状态：** FAIL
 - **目标与前置条件：** 部署者确认带有 `self-hosted`、`linux`、`whalelink-linux` 标签的 Runner 已在线，且 Docker、systemd 和锁定的 EasyTier v2.6.4 可用；隔离的外连双节点测试环境已由部署者自测。
-- **改动：** 待新增仅面向自托管 Runner 的 Linux 工作流、受机密保护的 EasyTier TUN 连通脚本与非敏感配置说明；构建 Server 镜像并测试到预置对端的覆盖网络连通性。
-- **关键命令：** 待执行 `bash -n`、ShellCheck（若 Runner/本机可用）、`docker build` 与 GitHub Actions 实际运行；测试参数只从 Actions Variables/Secrets 注入。
-- **验证证据：** 本地已审阅现有 `deploy/Dockerfile.server`、EasyTier v2.6.4 锁定文件、Windows 双节点回环脚本与发行门禁。任何真实 Relay、网络名、密钥、对端地址或运行日志均不得提交。
-- **风险/阻塞：** 实际 TUN 测试需要 Runner 有免交互 sudo 与 `/dev/net/tun` 权限，以及仓库已配置指定 Variables/Secret；提交前尚无远程 Actions 运行证据。
-- **下一步：** 实现并本地做静态校验，推送以触发自托管工作流；读取实际运行结果后完成或如实标记阻断。
+- **改动：** 新增 `.github/workflows/linux-verify.yml`、`scripts/easytier-linux-tun-smoke.sh` 和非敏感 CI 配置契约。工作流只运行在指定自托管标签上，构建 Server 镜像后才执行受 Actions Variables/Secret 注入的真实 TUN/ICMP 门禁。
+- **关键命令：** 本地执行 `git diff --check` 与敏感测试值扫描；远程执行前置检查、`docker build --file deploy/Dockerfile.server` 与 TUN 冒烟步骤。
+- **验证证据：** 触发提交 `52365101da6f6df4b6acd7f8c76857f4add52ce3` 的 Linux Run `35357585207`（`https://github.com/Yue-Sl/WhaleLink/actions/runs/35357585207`）：Runner 前置检查 PASS；Server 镜像构建 FAIL（退出码 1）；TUN 步骤 SKIPPED。真实 Relay、网络名、密钥和对端地址不在追踪内容或本记录中。
+- **风险/阻塞：** GitHub 无认证日志下载接口要求仓库管理员权限，公开检查注释只提供构建阶段的退出码，尚不能据此安全推断 Docker 构建根因。该失败使真实 TUN 连通门禁保持未验收；Actions Variables/Secret 仍须按 `docs/verification/linux-self-hosted-tun-ci.md` 的契约配置。
+- **下一步：** 由仓库管理员提供该 Run 的“Build Server image”非敏感错误末段，或在已认证终端重新运行相同 Docker 命令并提供输出；修复后重新触发工作流，再记录真实 TUN 结果。
 
 ### WL-0055 — GitHub 首次推送与远程 CI 启用
 
