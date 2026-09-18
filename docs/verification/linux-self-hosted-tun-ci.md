@@ -1,6 +1,6 @@
 # 自托管 Linux 真实 TUN CI 门禁
 
-**状态：** FAIL（首次远程执行在镜像构建阶段停止）  
+**状态：** FAIL（首次远程执行在镜像构建阶段停止）
 **范围：** GitHub Actions Runner 标签为 `self-hosted`、`linux`、`whalelink-linux` 的受保护主机。
 
 `/.github/workflows/linux-verify.yml` 在受保护的 `main` 推送与手动触发时执行以下门禁：
