@@ -17,6 +17,16 @@
 
 ## 任务记录
 
+### WL-0055 — GitHub 首次推送与远程 CI 启用
+
+- **状态：** IN PROGRESS
+- **目标与前置条件：** 部署者已将现有 SSH 公钥添加到 GitHub；将本地 `main` 的首版工程推送至 `Yue-Sl/WhaleLink`，以便取得远程 CI 记录。
+- **改动：** 待配置 `origin` 为 GitHub SSH 地址并推送当前 `main`；成功后记录实际提交、remote URL 与远程验证结果。
+- **关键命令：** 已核对 `git status --short`、本地 HEAD 与目标仓库 heads；待执行 `git remote add`、`git branch -M main`、`git push -u origin main`。
+- **验证证据：** 本地工作树干净；目标仓库 SSH 查询成功且未返回远程分支。SSH 私钥与公钥均不写入本仓库或本工作日志。
+- **风险/阻塞：** 仍依赖外部 GitHub SSH 网络与用户已添加的公钥权限；若标准 SSH 端口连接被重置，按部署者指定切换至 `ssh.github.com:443`。
+- **下一步：** 提交本任务的进行中记录，配置 remote 并推送；成功后补充最终证据并再次推送工作日志。
+
 ### WL-0054 — 首版最终本地审计与外部发布阻断
 
 - **状态：** BLOCKED
