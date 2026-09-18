@@ -22,8 +22,9 @@ public partial class MainWindow : Window
     {
         try
         {
-            if (!Uri.TryCreate(ServerUrl.Text, UriKind.Absolute, out var server))
-                throw new ArgumentException("请输入有效的服务器地址。");
+            if (!Uri.TryCreate(ServerUrl.Text, UriKind.Absolute, out var server)
+                || !server.Scheme.Equals(Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase))
+                throw new ArgumentException("请输入有效的 HTTPS 服务器地址。");
             var enrollment = await _controlPlane.RedeemInviteAsync(server, InviteCode.Text ?? string.Empty);
             _credentials.Save(enrollment.RoomId, enrollment.DataPlaneConfig);
             InviteCode.Text = string.Empty;
@@ -42,6 +43,19 @@ public partial class MainWindow : Window
         {
             StatusText.Text = exception.Message;
         }
+    }
+
+    private void ImportInvitePayload(object? sender, RoutedEventArgs e)
+    {
+        try
+        {
+            var payload = InvitePayloadParser.Parse(InvitePayload.Text);
+            if (payload.Server is not null) ServerUrl.Text = payload.Server.ToString().TrimEnd('/');
+            InviteCode.Text = payload.Code;
+            InvitePayload.Text = string.Empty;
+            StatusText.Text = "邀请码已导入；请确认服务器地址后兑换。";
+        }
+        catch (Exception exception) { StatusText.Text = exception.Message; }
     }
 
     private async void ConnectRoom(object? sender, RoutedEventArgs e)
@@ -147,7 +161,9 @@ public partial class MainWindow : Window
     private Uri AdministratorServer()
     {
         if (!Uri.TryCreate(AdminServerUrl.Text, UriKind.Absolute, out var server))
-            throw new ArgumentException("请输入有效的管理员服务器地址。");
+            throw new ArgumentException("请输入有效的管理员 HTTPS 服务器地址。");
+        if (!server.Scheme.Equals(Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase))
+            throw new ArgumentException("管理员服务器地址必须使用 HTTPS。");
         return server;
     }
 

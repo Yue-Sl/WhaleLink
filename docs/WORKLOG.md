@@ -17,6 +17,36 @@
 
 ## 任务记录
 
+### WL-0049 — 二维码与 HTTPS 加固后的发行候选重建
+
+- **状态：** PASS
+- **目标与前置条件：** WL-0048 改变桌面端和 Linux 源码包内容，先前候选不再代表当前实现。
+- **改动：** 运行完整本地回归及二维码契约；重建 Windows/Linux 发行物、SBOM 和校验清单；复核归档结构、许可证、缓存排除和当前用户安装/卸载。
+- **关键命令：** workspace `fmt/test/clippy`；Server、正常 Pipe、异常重启 daemon 冒烟；Desktop build 与二维码契约；两个打包脚本；SHA-256 逐条复算；隔离安装/卸载。
+- **验证证据：** `docs/verification/2026-09-18-desktop-invite-payload.md`、`docs/verification/2026-09-18-license-release-gate.md`。Windows 便携/安装包为 49/52 项、清单 102 条；Linux 包为 50 项、清单 51 条，均通过复算。
+- **风险/阻塞：** 目标 Linux、双节点 TUN/Relay、跨用户 ACL、远程 CI 和 GitHub Release 仍是未关闭的发布阻断项。
+- **下一步：** 将 QR/HTTPS 更改创建为本地提交；等待或接入目标环境进行剩余发布验收。
+
+### WL-0048 — Windows 客户端二维码/邀请码安全导入
+
+- **状态：** PASS
+- **目标与前置条件：** M3 要求客户端支持二维码/邀请码导入；旧 GUI 只能手输邀请码，且未在桌面控制面入口强制 HTTPS。
+- **改动：** 新增本地二维码载荷解析，支持原始邀请码及带 HTTPS 控制面地址的 `whalelink://invite` 格式；导入后清空载荷栏，只填充既有兑换控件。控制面客户端与管理员界面统一拒绝 HTTP。新增程序集契约脚本，并在 Windows Desktop CI 使用 PowerShell 7 运行。
+- **关键命令：** Desktop Release build；`pwsh -NoProfile -File scripts/desktop-invite-payload-contract.ps1`。
+- **验证证据：** `docs/verification/2026-09-18-desktop-invite-payload.md`。HTTPS 二维码与原始邀请码接受；缺邀请码和 HTTP 地址在本地拒绝；0 warnings、0 errors。
+- **风险/阻塞：** 首发不包含相机权限、二维码图像识别或二维码生成；用户需粘贴扫码器或受控渠道解码的文本。控制面服务器仍须由部署者配置 TLS。
+- **下一步：** 重跑全 workspace 回归并重建最新发行候选；真实 GUI 视觉验收和目标网络验收仍在发布阻断项内。
+
+### WL-0047 — 二维码契约脚本的 Windows PowerShell 兼容性
+
+- **状态：** FAIL
+- **目标与前置条件：** 首次从 PowerShell 5.1 加载 Desktop `net8.0-windows` 程序集执行二维码解析契约。
+- **改动：** 无产品逻辑失败；Windows PowerShell 5.1 不能加载 .NET 8 的 `System.Runtime`，脚本在 `GetType` 前失败。
+- **关键命令：** `powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/desktop-invite-payload-contract.ps1`。
+- **验证证据：** `Could not load file or assembly 'System.Runtime, Version=8.0.0.0'`。已改为 PowerShell 7 并在 WL-0048 验证通过。
+- **风险/阻塞：** 该脚本不得在 Windows PowerShell 5.1 环境运行；CI 显式使用 `pwsh`。
+- **下一步：** 见 WL-0048。
+
 ### WL-0046 — 异常重启版本的发行候选重建
 
 - **状态：** PASS

@@ -9,6 +9,7 @@ internal sealed class ControlPlaneClient(HttpClient? httpClient = null)
 
     public async Task<EnrollmentResult> RedeemInviteAsync(Uri serverBaseUri, string inviteCode, CancellationToken cancellationToken = default)
     {
+        EnsureHttps(serverBaseUri);
         if (string.IsNullOrWhiteSpace(inviteCode)) throw new ArgumentException("请输入邀请码。", nameof(inviteCode));
         var endpoint = new Uri(serverBaseUri, $"/api/v1/invites/{Uri.EscapeDataString(inviteCode)}/redeem");
         using var response = await _http.PostAsync(endpoint, content: null, cancellationToken);
@@ -22,6 +23,7 @@ internal sealed class ControlPlaneClient(HttpClient? httpClient = null)
 
     public async Task<IReadOnlyList<RoomSummary>> GetRoomsAsync(Uri serverBaseUri, string administratorToken, CancellationToken cancellationToken = default)
     {
+        EnsureHttps(serverBaseUri);
         using var request = AuthorizedRequest(HttpMethod.Get, serverBaseUri, "/api/v1/rooms", administratorToken);
         using var response = await _http.SendAsync(request, cancellationToken);
         using var document = await ReadSuccessAsync(response, "无法读取固定房间。", cancellationToken);
@@ -36,6 +38,7 @@ internal sealed class ControlPlaneClient(HttpClient? httpClient = null)
 
     public async Task<InviteIssued> CreateInviteAsync(Uri serverBaseUri, string administratorToken, string roomId, DateTimeOffset expiresAt, CancellationToken cancellationToken = default)
     {
+        EnsureHttps(serverBaseUri);
         using var request = AuthorizedRequest(HttpMethod.Post, serverBaseUri, $"/api/v1/rooms/{Uri.EscapeDataString(roomId)}/invites", administratorToken);
         request.Content = JsonContent.Create(new { expires_at = expiresAt.UtcDateTime });
         using var response = await _http.SendAsync(request, cancellationToken);
@@ -49,6 +52,7 @@ internal sealed class ControlPlaneClient(HttpClient? httpClient = null)
 
     public async Task RevokeInviteAsync(Uri serverBaseUri, string administratorToken, string inviteId, CancellationToken cancellationToken = default)
     {
+        EnsureHttps(serverBaseUri);
         using var request = AuthorizedRequest(HttpMethod.Delete, serverBaseUri, $"/api/v1/invites/{Uri.EscapeDataString(inviteId)}", administratorToken);
         using var response = await _http.SendAsync(request, cancellationToken);
         using var _ = await ReadSuccessAsync(response, "无法撤销邀请码。", cancellationToken);
@@ -56,6 +60,7 @@ internal sealed class ControlPlaneClient(HttpClient? httpClient = null)
 
     public async Task<IReadOnlyList<MemberSummary>> GetMembersAsync(Uri serverBaseUri, string administratorToken, string roomId, CancellationToken cancellationToken = default)
     {
+        EnsureHttps(serverBaseUri);
         using var request = AuthorizedRequest(HttpMethod.Get, serverBaseUri, $"/api/v1/rooms/{Uri.EscapeDataString(roomId)}/members", administratorToken);
         using var response = await _http.SendAsync(request, cancellationToken);
         using var document = await ReadSuccessAsync(response, "无法读取成员状态。", cancellationToken);
@@ -69,6 +74,7 @@ internal sealed class ControlPlaneClient(HttpClient? httpClient = null)
 
     public async Task<RoomSummary> RotateCredentialsAsync(Uri serverBaseUri, string administratorToken, string roomId, CancellationToken cancellationToken = default)
     {
+        EnsureHttps(serverBaseUri);
         using var request = AuthorizedRequest(HttpMethod.Post, serverBaseUri, $"/api/v1/rooms/{Uri.EscapeDataString(roomId)}/credentials/rotate", administratorToken);
         request.Content = new ByteArrayContent([]);
         using var response = await _http.SendAsync(request, cancellationToken);
@@ -87,6 +93,12 @@ internal sealed class ControlPlaneClient(HttpClient? httpClient = null)
         var request = new HttpRequestMessage(method, new Uri(serverBaseUri, path));
         request.Headers.Add("X-WhaleLink-Token", administratorToken);
         return request;
+    }
+
+    private static void EnsureHttps(Uri serverBaseUri)
+    {
+        if (!serverBaseUri.Scheme.Equals(Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase))
+            throw new ArgumentException("控制面地址必须使用 HTTPS。", nameof(serverBaseUri));
     }
 
     private static async Task<JsonDocument> ReadSuccessAsync(HttpResponseMessage response, string fallbackMessage, CancellationToken cancellationToken)

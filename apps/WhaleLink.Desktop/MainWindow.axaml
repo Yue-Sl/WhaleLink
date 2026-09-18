@@ -21,6 +21,8 @@
             <TextBlock FontWeight="SemiBold" Text="加入房间" />
             <TextBox x:Name="ServerUrl" Watermark="https://你的服务器" />
             <TextBox x:Name="InviteCode" Watermark="邀请码" />
+            <TextBox x:Name="InvitePayload" Watermark="粘贴二维码内容或邀请码" />
+            <Button HorizontalAlignment="Left" Click="ImportInvitePayload" Content="导入二维码/邀请码" />
             <Button HorizontalAlignment="Left" Click="RedeemInvite" Content="兑换并安全保存" />
             <TextBox x:Name="RoomId" Watermark="房间 ID（兑换成功后自动填写）" />
             <StackPanel Orientation="Horizontal" Spacing="8">
