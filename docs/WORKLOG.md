@@ -17,6 +17,16 @@
 
 ## 任务记录
 
+### WL-0057 — Linux CI 重试与测试参数契约修正
+
+- **状态：** IN PROGRESS
+- **目标与前置条件：** 部署者已确认 Runner 可用并要求在使用服务器本地 Rust 镜像缓存后重跑。测试输入应保存为受保护的 GitHub Actions Variables/Secret，网络名变量名以部署者指定的 `WHALELINK_TEST_NETNAME` 为准。
+- **改动：** 待将 Linux 工作流从过时的 `WHALELINK_TEST_NETWORK` 改为 `WHALELINK_TEST_NETNAME`，同步非敏感配置契约并推送触发新 Run。
+- **关键命令：** `git diff --check`；敏感值扫描；`git push`；GitHub Actions Run/Jobs 只读状态查询。
+- **验证证据：** WL-0056 的 Run `35357585207` 前置检查通过、镜像构建失败、TUN 步骤跳过；本机未安装 GitHub CLI，无法在本地写入或查询 GitHub Actions Variables/Secret。
+- **风险/阻塞：** 真实测试参数绝不进入 Git；若仓库尚未配置 `WHALELINK_TEST_RELAY`、`WHALELINK_TEST_NETNAME`、`WHALELINK_TEST_PEER` 与 `WHALELINK_TEST_SECRET`，远程脚本将以非敏感错误停止。该项需仓库管理员在 GitHub 设置中保存这些值，或提供可用的认证工具。
+- **下一步：** 推送变量名修正以触发 CI，读取构建和 TUN 结果；若缺少受保护参数，记录缺失但不记录值。
+
 ### WL-0056 — 自托管 Linux CI 与真实双节点 TUN 门禁
 
 - **状态：** FAIL

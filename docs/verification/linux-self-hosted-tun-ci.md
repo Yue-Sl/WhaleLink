@@ -19,7 +19,7 @@ Actions 日志、诊断包或本报告：
 | --- | --- | --- |
 | Variable | `WHALELINK_EASYTIER_CORE_PATH` | 可选；EasyTier 不在 `PATH` 时的绝对可执行路径。 |
 | Variable | `WHALELINK_TEST_RELAY` | 受隔离测试环境使用的 TCP Relay URL。 |
-| Variable | `WHALELINK_TEST_NETWORK` | 受隔离测试网络名。 |
+| Variable | `WHALELINK_TEST_NETNAME` | 受隔离测试网络名。 |
 | Variable | `WHALELINK_TEST_PEER` | 覆盖网络中的远程 IPv4 测试对端。 |
 | Secret | `WHALELINK_TEST_SECRET` | 受隔离测试网络密钥；仅注入该工作流运行环境。 |
 
