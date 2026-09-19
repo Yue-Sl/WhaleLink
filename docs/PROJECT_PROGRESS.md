@@ -1,7 +1,7 @@
 # WhaleLink v3：计划与当前进度对照
 
-**状态快照：** `782c15a40d8973e1e5d2a68d1cc9ca49d1e15ebb`
-**结论先行：** Windows 首版的“管理员按自己服务器参数接入已有 EasyTier 网络”已经可用，且有本机发行包与跨机 TUN 数据面验收证据。它还不是完整意义的“控制面驱动公开发行版”：Linux HTTPS 控制面部署、GUI 邀请码真实端到端验收、干净 Linux/CI 验收和 GitHub Release 仍未完成。
+**状态快照：** `ff7b49685daa4ceeb1619d78945ceafe28c310e9`（后续仅留痕文档变更不改变软件交付物）
+**结论先行：** Windows 首版的“管理员按自己服务器参数接入已有 EasyTier 网络”已经可用，且有本机发行包与跨机 TUN 数据面验收证据。控制面已部署并经 HTTPS 健康检查通过；GUI 邀请码真实端到端验收受当前 Codex Computer Use 认证模式阻塞。干净 Linux/CI 验收和 GitHub Release 仍未完成。
 
 ## 状态图例
 
@@ -18,7 +18,7 @@
 | --- | --- | --- | --- | --- |
 | **M0 工程与依赖** | 工程骨架、锁定官方 EasyTier、不维护 fork、真实双节点验证 | ✅ | 发行包使用锁定的外部 EasyTier 运行时；没有把上游二进制提交到源码仓库 | 后续升级 EasyTier 时重新核验版本、SHA-256 和许可证 |
 | **M1 本地 Core** | `whalelinkd`、版本化 Named Pipe、配置/诊断、DPAPI 与 ACL | ✅ | 直连脚本可受管地启动 EasyTier；本地机密不进入日志或普通配置 | 独立 Windows 用户会话下的 Pipe 拒绝访问验收 |
-| **M2 Linux 控制面** | 固定房间、管理员邀请、兑换、成员状态、凭据轮换 | 🟡 | Server 代码和部署资产已具备；**尚未部署的控制面不能给 GUI 发放邀请码** | 部署 HTTPS 控制面；配置固定房间和受限管理凭据；执行邀请码兑换→DPAPI 保存→daemon 连接的真实验收 |
+| **M2 Linux 控制面** | 固定房间、管理员邀请、兑换、成员状态、凭据轮换 | 🟡 | 控制面已部署在服务器回环地址，并经受信 HTTPS 入口健康检查 | 执行 GUI 邀请码兑换→DPAPI 保存→daemon 连接的真实验收 |
 | **M3 Windows GUI** | 管理端房间/邀请/诊断/轮换，客户端邀请导入与连接状态 | 🟡 | `WhaleLink.Desktop.exe` 可作为界面交付；邀请码主流程取决于 M2 已部署 | M2 就绪后完成真实 GUI 邀请码端到端验收；当前联机优先走脚本 |
 | **M4 发行版** | Windows 安装/便携包、Linux Docker/systemd、SBOM/许可证/SHA、GitHub Release | 🟡 | Windows 首版便携包和安装包、哈希、SBOM、NOTICE 和说明书已生成 | 在干净 Linux 验收 Docker/systemd/回滚；获得 CI 绿色记录；创建 GitHub Release 并复核第三方义务 |
 
@@ -80,8 +80,8 @@ Windows 管理员运行 Connect-WhaleLink.ps1
 
 | 优先级 | 要完成的事 | 完成判据 | 依赖 |
 | --- | --- | --- | --- |
-| P0 | 部署 M2 HTTPS 控制面 | 固定房间可查询；管理员可创建/撤销邀请码；客户端可安全兑换 | 🟡 **服务器端完成：** 控制面已在回环 `8787` 运行且 API 冒烟通过；部署者负责的 DNS-01 + Caddy:8443 尚待确认可访问 |
-| P0 | GUI 邀请码端到端验收 | 邀请码兑换、DPAPI 保存、daemon 启动和真实对端连通全部通过 | 🟡 HTTPS:8443 已通过；当前阻塞于 Windows Computer Use 运行时缺失，尚未执行 GUI 输入 |
+| P0 | 部署 M2 HTTPS 控制面 | 固定房间可查询；管理员可创建/撤销邀请码；客户端可安全兑换 | ✅ 控制面在回环 `8787` 运行，HTTPS 入口健康接口已返回成功响应 |
+| P0 | GUI 邀请码端到端验收 | 邀请码兑换、DPAPI 保存、daemon 启动和真实对端连通全部通过 | 🟡 HTTPS 入口已通过；Computer Use 两次初始化均因当前 `apikey` 认证模式无法枚举 GUI，尚未执行 GUI 输入 |
 | P1 | Linux 发行验收 | Docker 镜像、systemd、回滚在干净 Linux 环境实际通过 | 可用 Linux 验收主机 |
 | P1 | CI 门禁实跑 | Windows/Linux 构建与非敏感冒烟存在可复核绿色 Run | 可用 Runner 与仓库认证 |
 | P2 | 正式 GitHub Release | 附件、SHA-256、SBOM、NOTICE、许可证和回滚说明复核完成 | P1 全绿和发行管理员确认 |
