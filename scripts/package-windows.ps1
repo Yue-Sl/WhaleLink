@@ -62,6 +62,7 @@ Copy-Item (Join-Path $root 'README.md') (Join-Path $outputPath 'portable')
 Copy-Item (Join-Path $root 'scripts\Connect-WhaleLink.ps1') (Join-Path $outputPath 'portable')
 New-Item -ItemType Directory -Force -Path (Join-Path $outputPath 'portable\docs') | Out-Null
 Copy-Item (Join-Path $root 'docs\DEPLOYMENT.md') (Join-Path $outputPath 'portable\docs')
+Copy-Item -LiteralPath (Join-Path $root 'docs\USER_GUIDE.md') -Destination (Join-Path $outputPath 'portable\docs\WhaleLink-User-Guide.md')
 New-Item -ItemType Directory -Force -Path (Join-Path $outputPath 'portable\licenses') | Out-Null
 Copy-Item -LiteralPath (Join-Path $licenseDirectory 'LICENSE') -Destination (Join-Path $outputPath 'portable\licenses\EasyTier-LGPL-3.0.txt')
 Copy-Item -LiteralPath (Join-Path $licenseDirectory 'GPL-3.0.txt') -Destination (Join-Path $outputPath 'portable\licenses\GPL-3.0.txt')
