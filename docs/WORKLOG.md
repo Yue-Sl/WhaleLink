@@ -25,7 +25,7 @@
 - **关键命令：** Dockerfile/workspace 清单审阅；`git diff --check`；`cargo metadata --locked --no-deps`；workspace manifest/忽略规则覆盖检查；敏感值扫描。
 - **验证证据：** 服务器 AI 的非敏感结论已记录在 `docs/SERVER_AI_HANDOFF.md`：基础镜像、依赖网络、Docker daemon 与磁盘被排除；独立测试节点可见且覆盖网络 ICMP 已通。服务器 AI 对提交 `7e81157` 的缓存分层复核为 PASS，确认全部五个 workspace manifest 在缓存键内、真实源码覆盖虚拟源码、工作流超时为 60 分钟。本地静态检查全部通过；本机无 Linux Docker 运行时，未声称 Docker 构建成功。
 - **风险/阻塞：** 缓存分层的权威验证仅能由自托管 Runner 完成；工作流已刻意改为手动 dispatch，本机没有 GitHub 管理认证，不能安全地自行触发。若新 Run 仍在 60 分钟构建阶段超时，必须取得带阶段名称的非敏感构建证据，不能再盲目重跑。
-- **下一步：** 服务器 AI 或仓库管理员针对提交 `7e81157` 手动 dispatch 一次 `linux-verify`，分别记录 Docker 构建与 TUN 结果。
+- **下一步：** 本地只读 GitHub 查询确认尚未出现 `workflow_dispatch` Run。服务器 AI 或仓库管理员应在当前默认分支手动 dispatch 一次 `linux-verify`，分别记录 Docker 构建与 TUN 结果。
 
 ### WL-0062 — 服务器 AI 对接与操作前必读门槛
 
