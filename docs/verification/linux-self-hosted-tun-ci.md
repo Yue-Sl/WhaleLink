@@ -35,6 +35,10 @@ Windows 外部对端启动后，本机默认 EasyTier RPC 端点可以响应但�
 默认 RPC 不得用作测试节点已加入网络的证据。成员可见性应由服务器侧对目标实例执行只读 CLI
 查询，或由后续 Linux CI 的实际 TUN 连通门禁证明。
 
+部署者确认新隔离网段对应的 `WHALELINK_TEST_IPV4` 与 `WHALELINK_TEST_PEER` 已更新后，脚本会
+额外验证 IPv4 每个八位组不超过 255，再生成临时配置并启动测试。此校验仅处理运行时值，不回显
+或持久化它们。
+
 ## 通过证据
 
 首次成功运行后，在此追加 Actions run URL、提交 SHA、UTC 时间和各门禁的 PASS 摘要。不要记录

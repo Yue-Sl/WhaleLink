@@ -18,16 +18,29 @@ required EASYTIER_TEST_NETWORK
 required EASYTIER_TEST_SECRET
 required EASYTIER_TEST_PEER
 
+is_ipv4() {
+  local candidate="$1"
+  local octets=()
+  local octet
+  IFS='.' read -r -a octets <<<"$candidate"
+  [[ "${#octets[@]}" -eq 4 ]] || return 1
+  for octet in "${octets[@]}"; do
+    [[ "$octet" =~ ^[0-9]{1,3}$ ]] || return 1
+    (( 10#$octet <= 255 )) || return 1
+  done
+}
+
 # Keep CI values as simple TOML scalars and prevent configuration injection.
 [[ "$EASYTIER_TEST_RELAY" =~ ^tcp://[[:alnum:].-]+:[0-9]{1,5}$ ]] || fail 'invalid relay URL configuration'
 [[ "$EASYTIER_TEST_NETWORK" =~ ^[[:alnum:]_.-]{1,128}$ ]] || fail 'invalid network name configuration'
 [[ "$EASYTIER_TEST_SECRET" =~ ^[[:alnum:]_-]{16,256}$ ]] || fail 'invalid network secret configuration'
-[[ "$EASYTIER_TEST_PEER" =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}$ ]] || fail 'invalid peer IPv4 configuration'
+is_ipv4 "$EASYTIER_TEST_PEER" || fail 'invalid peer IPv4 configuration'
 
 ipv4_line=''
 if [[ -n "${EASYTIER_TEST_IPV4:-}" ]]; then
   [[ "$EASYTIER_TEST_IPV4" =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}/([0-9]|[12][0-9]|3[0-2])$ ]] \
     || fail 'invalid optional EasyTier IPv4 CIDR configuration'
+  is_ipv4 "${EASYTIER_TEST_IPV4%/*}" || fail 'invalid optional EasyTier IPv4 CIDR configuration'
   ipv4_line="ipv4 = \"$EASYTIER_TEST_IPV4\""
 fi
 
