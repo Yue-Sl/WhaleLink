@@ -31,6 +31,10 @@ Actions 日志、诊断包或本报告：
 源码、示例配置或本报告来保存实际值。`WHALELINK_TEST_IPV4` 与 `WHALELINK_TEST_PEER` 必须
 属于同一隔离覆盖网段，且两端地址不得冲突。
 
+Windows 外部对端启动后，本机默认 EasyTier RPC 端点可以响应但不对应测试实例；在多实例环境中，
+默认 RPC 不得用作测试节点已加入网络的证据。成员可见性应由服务器侧对目标实例执行只读 CLI
+查询，或由后续 Linux CI 的实际 TUN 连通门禁证明。
+
 ## 通过证据
 
 首次成功运行后，在此追加 Actions run URL、提交 SHA、UTC 时间和各门禁的 PASS 摘要。不要记录
