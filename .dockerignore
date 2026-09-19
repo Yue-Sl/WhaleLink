@@ -1,13 +1,18 @@
-.git
-.github
-.whalelink
-.nuget
-artifacts
-target
-vendor
+# Local build products must not overwrite the dependency cache retained from
+# the cargo-deps stage or inflate the Docker build context.
+.git/
+.github/
+.agents/
+.codex/
+.vs/
+target/
+artifacts/
+vendor/
+.whalelink/
+.nuget/
 easytier-*.zip
-**/bin
-**/obj
+**/bin/
+**/obj/
 *.secret
 *.token
 *.local.toml

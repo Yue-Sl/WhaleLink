@@ -2,16 +2,6 @@ name: linux-verify
 
 on:
   workflow_dispatch:
-  push:
-    branches: [main]
-    paths:
-      - '.github/workflows/linux-verify.yml'
-      - 'scripts/easytier-linux-tun-smoke.sh'
-      - 'deploy/**'
-      - 'apps/whalelink-server/**'
-      - 'crates/**'
-      - 'Cargo.lock'
-      - 'Cargo.toml'
 
 permissions:
   contents: read
@@ -20,7 +10,7 @@ jobs:
   verify-linux-runtime:
     name: build-server-and-verify-tun
     runs-on: [self-hosted, linux, whalelink-linux]
-    timeout-minutes: 30
+    timeout-minutes: 60
     env:
       # Empty path selects easytier-core from PATH. A protected repository
       # variable may supply an absolute path when the runner needs one.

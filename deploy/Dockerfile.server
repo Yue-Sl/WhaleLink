@@ -1,4 +1,29 @@
-FROM rust:1.85-bookworm AS builder
+FROM rust:1.85-bookworm AS cargo-deps
+WORKDIR /src
+
+# Keep the expensive third-party dependency build behind a cache key made only
+# from Cargo metadata. Every workspace manifest is included so Cargo's workspace
+# resolution remains identical to the final source build.
+COPY Cargo.toml Cargo.lock ./
+COPY crates/whalelink-protocol/Cargo.toml crates/whalelink-protocol/Cargo.toml
+COPY crates/whalelink-core/Cargo.toml crates/whalelink-core/Cargo.toml
+COPY apps/whalelinkd/Cargo.toml apps/whalelinkd/Cargo.toml
+COPY apps/whalelink-server/Cargo.toml apps/whalelink-server/Cargo.toml
+COPY apps/whalelink-cli/Cargo.toml apps/whalelink-cli/Cargo.toml
+
+# Cargo needs targets for local path dependencies. These throwaway sources only
+# populate the dependency layer; the next stage overwrites them with real code.
+RUN mkdir -p crates/whalelink-protocol/src crates/whalelink-core/src \
+    apps/whalelinkd/src apps/whalelink-server/src apps/whalelink-cli/src \
+    && printf 'pub fn dependency_cache_placeholder() {}\n' > crates/whalelink-protocol/src/lib.rs \
+    && printf 'pub fn dependency_cache_placeholder() {}\n' > crates/whalelink-core/src/lib.rs \
+    && printf 'fn main() {}\n' > apps/whalelinkd/src/main.rs \
+    && printf 'pub fn dependency_cache_placeholder() {}\n' > apps/whalelink-server/src/lib.rs \
+    && printf 'fn main() {}\n' > apps/whalelink-server/src/main.rs \
+    && printf 'fn main() {}\n' > apps/whalelink-cli/src/main.rs
+RUN cargo build --locked --release --package whalelink-server
+
+FROM cargo-deps AS builder
 WORKDIR /src
 COPY . .
 RUN cargo build --locked --release --package whalelink-server
