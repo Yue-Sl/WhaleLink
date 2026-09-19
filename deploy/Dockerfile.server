@@ -26,7 +26,13 @@ RUN cargo build --locked --release --package whalelink-server
 FROM cargo-deps AS builder
 WORKDIR /src
 COPY . .
-RUN cargo build --locked --release --package whalelink-server
+# `cargo-deps` uses placeholder sources to warm third-party dependencies. A
+# legacy Docker builder preserves those newer source timestamps when the real
+# tree is copied, which could retain an empty placeholder executable. Touching
+# local sources invalidates only workspace packages; third-party artifacts stay
+# cached.
+RUN find crates apps -type f -exec touch {} + \
+    && RUSTUP_TOOLCHAIN=1.85.1 cargo build --locked --release --package whalelink-server
 
 FROM debian:bookworm-slim
 RUN useradd --system --create-home --uid 10001 whalelink \

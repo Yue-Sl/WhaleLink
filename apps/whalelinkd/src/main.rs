@@ -84,17 +84,19 @@ async fn main() -> anyhow::Result<()> {
             rpc_portal,
             no_listener,
             no_tun,
-        } => connect(
-            executable,
-            network_name,
-            secret_env,
-            relay,
-            ipv4,
-            rpc_portal,
-            no_listener,
-            no_tun,
-        )
-        .await?,
+        } => {
+            connect(
+                executable,
+                network_name,
+                secret_env,
+                relay,
+                ipv4,
+                rpc_portal,
+                no_listener,
+                no_tun,
+            )
+            .await?
+        }
     }
     Ok(())
 }
@@ -117,7 +119,10 @@ async fn connect(
         anyhow::bail!("--executable must be an absolute path");
     }
     if !executable.is_file() {
-        anyhow::bail!("EasyTier executable does not exist: {}", executable.display());
+        anyhow::bail!(
+            "EasyTier executable does not exist: {}",
+            executable.display()
+        );
     }
     if network_name.trim().is_empty() || relay.trim().is_empty() {
         anyhow::bail!("--network-name and --relay are required");
@@ -162,7 +167,10 @@ async fn connect(
         .start()
         .await
         .map_err(|error| anyhow::anyhow!("failed to launch EasyTier: {error}"))?;
-    eprintln!("{}", serde_json::json!({"component":"whalelinkd","event":"easytier.started","schema_version":1}));
+    eprintln!(
+        "{}",
+        serde_json::json!({"component":"whalelinkd","event":"easytier.started","schema_version":1})
+    );
     println!("EasyTier connection started; Ctrl+C stops WhaleLink");
     loop {
         tokio::select! {

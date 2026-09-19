@@ -207,7 +207,7 @@ impl KillOnDropJob {
         use windows_sys::Win32::{
             Foundation::CloseHandle,
             System::JobObjects::{
-                CreateJobObjectW, SetInformationJobObject, JobObjectExtendedLimitInformation,
+                CreateJobObjectW, JobObjectExtendedLimitInformation, SetInformationJobObject,
                 JOBOBJECT_EXTENDED_LIMIT_INFORMATION, JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE,
             },
         };
@@ -236,9 +236,9 @@ impl KillOnDropJob {
     fn assign(&self, child: &Child) -> Result<(), CoreError> {
         use windows_sys::Win32::System::JobObjects::AssignProcessToJobObject;
 
-        let process_handle = child
-            .raw_handle()
-            .ok_or_else(|| CoreError::Config("EasyTier child has no Windows process handle".into()))?;
+        let process_handle = child.raw_handle().ok_or_else(|| {
+            CoreError::Config("EasyTier child has no Windows process handle".into())
+        })?;
         let assigned = unsafe { AssignProcessToJobObject(self.0, process_handle.cast()) };
         if assigned == 0 {
             return Err(CoreError::Io(std::io::Error::last_os_error()));
