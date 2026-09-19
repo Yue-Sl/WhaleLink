@@ -117,6 +117,8 @@ pub fn write_state_atomically(path: &Path, state: &RuntimeState) -> Result<(), C
 pub struct EasyTierProcess {
     config: EasyTierConfig,
     child: Option<Child>,
+    #[cfg(windows)]
+    job: Option<KillOnDropJob>,
 }
 
 impl EasyTierProcess {
@@ -124,6 +126,8 @@ impl EasyTierProcess {
         Self {
             config,
             child: None,
+            #[cfg(windows)]
+            job: None,
         }
     }
 
@@ -148,6 +152,12 @@ impl EasyTierProcess {
             .stdout(Stdio::null())
             .stderr(Stdio::inherit())
             .spawn()?;
+        #[cfg(windows)]
+        {
+            let job = KillOnDropJob::new()?;
+            job.assign(&child)?;
+            self.job = Some(job);
+        }
         self.child = Some(child);
         Ok(())
     }
@@ -181,6 +191,66 @@ impl EasyTierProcess {
             self.child = None;
         }
         Ok(exited)
+    }
+}
+
+/// A Windows Job Object makes a force-closed daemon take its EasyTier child
+/// with it. This prevents a stale virtual adapter process from surviving an
+/// updater, terminal close, or desktop crash.
+#[cfg(windows)]
+struct KillOnDropJob(windows_sys::Win32::Foundation::HANDLE);
+
+#[cfg(windows)]
+impl KillOnDropJob {
+    fn new() -> Result<Self, CoreError> {
+        use std::{mem::size_of, ptr};
+        use windows_sys::Win32::{
+            Foundation::CloseHandle,
+            System::JobObjects::{
+                CreateJobObjectW, SetInformationJobObject, JobObjectExtendedLimitInformation,
+                JOBOBJECT_EXTENDED_LIMIT_INFORMATION, JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE,
+            },
+        };
+
+        let handle = unsafe { CreateJobObjectW(ptr::null(), ptr::null()) };
+        if handle.is_null() {
+            return Err(CoreError::Io(std::io::Error::last_os_error()));
+        }
+        let mut limits = JOBOBJECT_EXTENDED_LIMIT_INFORMATION::default();
+        limits.BasicLimitInformation.LimitFlags = JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE;
+        let configured = unsafe {
+            SetInformationJobObject(
+                handle,
+                JobObjectExtendedLimitInformation,
+                (&mut limits as *mut JOBOBJECT_EXTENDED_LIMIT_INFORMATION).cast(),
+                size_of::<JOBOBJECT_EXTENDED_LIMIT_INFORMATION>() as u32,
+            )
+        };
+        if configured == 0 {
+            unsafe { CloseHandle(handle) };
+            return Err(CoreError::Io(std::io::Error::last_os_error()));
+        }
+        Ok(Self(handle))
+    }
+
+    fn assign(&self, child: &Child) -> Result<(), CoreError> {
+        use windows_sys::Win32::System::JobObjects::AssignProcessToJobObject;
+
+        let process_handle = child
+            .raw_handle()
+            .ok_or_else(|| CoreError::Config("EasyTier child has no Windows process handle".into()))?;
+        let assigned = unsafe { AssignProcessToJobObject(self.0, process_handle.cast()) };
+        if assigned == 0 {
+            return Err(CoreError::Io(std::io::Error::last_os_error()));
+        }
+        Ok(())
+    }
+}
+
+#[cfg(windows)]
+impl Drop for KillOnDropJob {
+    fn drop(&mut self) {
+        unsafe { windows_sys::Win32::Foundation::CloseHandle(self.0) };
     }
 }
 

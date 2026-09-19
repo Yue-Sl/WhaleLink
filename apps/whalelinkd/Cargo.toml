@@ -15,4 +15,4 @@ whalelink-core = { path = "../../crates/whalelink-core" }
 whalelink-protocol = { path = "../../crates/whalelink-protocol" }
 
 [target.'cfg(windows)'.dependencies]
-windows-sys = { version = "0.61.2", features = ["Win32_Foundation", "Win32_Security", "Win32_Security_Authorization"] }
+windows-sys = { version = "0.61.2", features = ["Win32_Foundation", "Win32_Security", "Win32_Security_Authorization", "Win32_System_JobObjects"] }
