@@ -19,13 +19,13 @@
 
 ### WL-0071 — P0 控制面部署与 GUI 邀请码端到端验收
 
-- **状态：** IN PROGRESS
+- **状态：** BLOCKED
 - **目标与前置条件：** 完成 M2 HTTPS 控制面部署，并以一次性邀请码验证 GUI 兑换、受保护凭据保存、本地守护进程启动和真实数据面连通。仅操作独立 WhaleLink 服务；不得停止、重启或改写现网 EasyTier 服务。
 - **改动：** 已完成服务器端控制面部署：房间参数按授权一次性无输出写入受限运行时配置；使用独立 Docker 容器、只读 TOML 挂载、命名状态卷及宿主回环 `127.0.0.1:8787`。修复 Dockerfile 的占位源码缓存缺陷，确保真实 Server 二进制被重新编译。未改动、停止或重启现网 EasyTier 服务；TLS/Caddy/8443 仍由部署者负责。
 - **关键命令：** 服务器只读前置检查；受控无输出导入；Docker 构建/启动；回环健康检查；无敏感输出的固定房间、邀请创建/撤销及撤销兑换拒绝 API 冒烟；`cargo fmt --all -- --check`；`cargo test --workspace --locked`（跳过受限会话不可用的 DPAPI 单测）。
-- **验证证据：** [`docs/verification/2026-09-19-p0-control-plane.md`](verification/2026-09-19-p0-control-plane.md) 与 [`docs/verification/2026-09-19-p0-https-preflight.md`](verification/2026-09-19-p0-https-preflight.md)。控制面健康、固定房间、邀请创建/撤销和拒绝撤销邀请码均通过；本地 Rust 19 项测试与格式检查通过。域名已解析但部署者的 DNS-01 + Caddy:8443 HTTPS 入口尚待其侧完成。
-- **风险/阻塞：** 服务器端完成不等于 GUI 流程完成。已复核控制面在服务器回环健康，但公开 HTTPS:8443 仍返回 502；Caddy 运行在独立 Docker 容器，配置中的 `127.0.0.1:8787` 指向 Caddy 容器自身而非宿主控制面。部署者负责将其上游改为可达的宿主网关或与控制面共享的 Docker 网络后，才能执行或宣称 GUI 邀请码兑换、DPAPI 保存和真实数据面启动已验收。真实密钥、管理员令牌和邀请码未写入仓库、日志或验证报告。
-- **下一步：** 部署者修正 Caddy Docker 上游并确认 HTTPS:8443 健康接口返回成功后，创建一次性邀请码，执行 Windows GUI 兑换→DPAPI 保存→守护进程启动→真实对端连通的端到端验收；通过后将本任务标为 PASS。
+- **验证证据：** [`docs/verification/2026-09-19-p0-control-plane.md`](verification/2026-09-19-p0-control-plane.md)、[`docs/verification/2026-09-19-p0-https-preflight.md`](verification/2026-09-19-p0-https-preflight.md) 与 [`docs/verification/2026-09-19-p0-gui-acceptance-blocked.md`](verification/2026-09-19-p0-gui-acceptance-blocked.md)。服务器本机经 HTTPS:8443 健康接口返回 HTTP 200；Windows 发行包 GUI 进程已启动，但 Computer Use 运行时初始化失败，未执行 GUI 输入或兑换。
+- **风险/阻塞：** 当前阻塞是 Windows Computer Use 运行时缺失，不能可靠控制 Avalonia 窗口。根据安全规则，不以猜测坐标、终端 UI 自动化或直接 API 调用冒充 GUI 兑换和 DPAPI 验收；邀请码未消费，真实联机步骤未开始。真实密钥、管理员令牌和邀请码未写入仓库、日志或验证报告。
+- **下一步：** 恢复 Windows Computer Use 运行时后创建新的短期邀请码，执行 GUI 兑换→DPAPI 保存→守护进程启动→真实对端连通验收；通过后将本任务标为 PASS。
 
 ### WL-0070 — 计划、进度与首版使用对照
 

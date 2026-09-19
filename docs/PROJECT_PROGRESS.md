@@ -81,7 +81,7 @@ Windows 管理员运行 Connect-WhaleLink.ps1
 | 优先级 | 要完成的事 | 完成判据 | 依赖 |
 | --- | --- | --- | --- |
 | P0 | 部署 M2 HTTPS 控制面 | 固定房间可查询；管理员可创建/撤销邀请码；客户端可安全兑换 | 🟡 **服务器端完成：** 控制面已在回环 `8787` 运行且 API 冒烟通过；部署者负责的 DNS-01 + Caddy:8443 尚待确认可访问 |
-| P0 | GUI 邀请码端到端验收 | 邀请码兑换、DPAPI 保存、daemon 启动和真实对端连通全部通过 | ⏳ 等 HTTPS:8443 入口就绪后执行；不得以本机 API 冒烟替代 |
+| P0 | GUI 邀请码端到端验收 | 邀请码兑换、DPAPI 保存、daemon 启动和真实对端连通全部通过 | 🟡 HTTPS:8443 已通过；当前阻塞于 Windows Computer Use 运行时缺失，尚未执行 GUI 输入 |
 | P1 | Linux 发行验收 | Docker 镜像、systemd、回滚在干净 Linux 环境实际通过 | 可用 Linux 验收主机 |
 | P1 | CI 门禁实跑 | Windows/Linux 构建与非敏感冒烟存在可复核绿色 Run | 可用 Runner 与仓库认证 |
 | P2 | 正式 GitHub Release | 附件、SHA-256、SBOM、NOTICE、许可证和回滚说明复核完成 | P1 全绿和发行管理员确认 |
