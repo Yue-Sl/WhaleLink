@@ -27,6 +27,10 @@ Actions 日志、诊断包或本报告：
 工作流不会在 fork PR 上运行，以免将自托管 Runner 或测试密钥暴露给不受信任代码。脚本不回显
 输入、命令行参数或 EasyTier 原始日志；失败时仅返回不含网络值的阶段性错误。
 
+隔离测试网段、节点地址或密钥轮换时，管理员只更新相应的 Actions Variables/Secret；不得修改
+源码、示例配置或本报告来保存实际值。`WHALELINK_TEST_IPV4` 与 `WHALELINK_TEST_PEER` 必须
+属于同一隔离覆盖网段，且两端地址不得冲突。
+
 ## 通过证据
 
 首次成功运行后，在此追加 Actions run URL、提交 SHA、UTC 时间和各门禁的 PASS 摘要。不要记录
