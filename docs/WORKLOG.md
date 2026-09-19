@@ -23,9 +23,9 @@
 - **目标与前置条件：** `docs/SERVER_AI_HANDOFF.md` 的服务器 AI 已确认真实测试节点可见、覆盖网络 ICMP 允许，且 Docker Rust 全量编译超过 30 分钟是当前唯一门禁阻断。
 - **改动：** 已新增 `cargo-deps` Docker 阶段：以根 manifest、lockfile 和全部五个 workspace 成员 manifest 作为缓存键，使用虚拟 workspace 源码预编译依赖，最终 builder 阶段覆盖真实源码重建 Server。`.dockerignore` 排除本地缓存/产物并保留既有归档与 NuGet 忽略；Linux CI 总超时已提高到 60 分钟，且改为仅 `workflow_dispatch` 手动触发，避免复核前自动重跑。
 - **关键命令：** Dockerfile/workspace 清单审阅；`git diff --check`；`cargo metadata --locked --no-deps`；workspace manifest/忽略规则覆盖检查；敏感值扫描。
-- **验证证据：** 服务器 AI 的非敏感结论已记录在 `docs/SERVER_AI_HANDOFF.md`：基础镜像、依赖网络、Docker daemon 与磁盘被排除；独立测试节点可见且覆盖网络 ICMP 已通。本地静态检查全部通过；本机无 Linux Docker 运行时，未声称 Docker 构建成功。
-- **风险/阻塞：** 缓存分层的权威验证仅能由自托管 Runner 完成。当前等待服务器 AI 复核 Dockerfile 结构；得到“通过”前不触发新的 CI Run。若新 Run 仍在 60 分钟构建阶段超时，必须取得带阶段名称的非敏感构建证据，不能再盲目重跑。
-- **下一步：** 推送供服务器 AI 复核；收到“通过”后执行一次有明确验收条件的 Run，分别记录 Docker 构建与 TUN 结果。
+- **验证证据：** 服务器 AI 的非敏感结论已记录在 `docs/SERVER_AI_HANDOFF.md`：基础镜像、依赖网络、Docker daemon 与磁盘被排除；独立测试节点可见且覆盖网络 ICMP 已通。服务器 AI 对提交 `7e81157` 的缓存分层复核为 PASS，确认全部五个 workspace manifest 在缓存键内、真实源码覆盖虚拟源码、工作流超时为 60 分钟。本地静态检查全部通过；本机无 Linux Docker 运行时，未声称 Docker 构建成功。
+- **风险/阻塞：** 缓存分层的权威验证仅能由自托管 Runner 完成；工作流已刻意改为手动 dispatch，本机没有 GitHub 管理认证，不能安全地自行触发。若新 Run 仍在 60 分钟构建阶段超时，必须取得带阶段名称的非敏感构建证据，不能再盲目重跑。
+- **下一步：** 服务器 AI 或仓库管理员针对提交 `7e81157` 手动 dispatch 一次 `linux-verify`，分别记录 Docker 构建与 TUN 结果。
 
 ### WL-0062 — 服务器 AI 对接与操作前必读门槛
 
