@@ -17,6 +17,16 @@
 
 ## 任务记录
 
+### WL-0058 — EasyTier v2 嵌套 TOML 配置修正
+
+- **状态：** IN PROGRESS
+- **目标与前置条件：** WL-0057 的真实 TUN 冒烟在镜像构建通过后失败；部署者提供 EasyTier v2 所需的 `network_identity`、`peer` 与 `flags` TOML 结构。
+- **改动：** 待将 Linux 冒烟脚本由旧扁平字段改为嵌套 TOML，增加启动前静默 `--check-config`，并将可选静态 IPv4 作为 Actions Variable 注入，而非硬编码。
+- **关键命令：** `git diff --check`；敏感值扫描；静态脚本结构复核；推送触发指定自托管 Runner。
+- **验证证据：** 部署者提供的配置结构已转换为模板化环境变量路径；真实 Relay、网络名、密钥、对端和静态 IPv4 不写入仓库、日志或本记录。
+- **风险/阻塞：** Windows 开发主机不具备 Bash 或 Linux EasyTier 运行时；嵌套结构的权威验证由下一次受保护 Runner 的 `--check-config` 与真实 TUN 冒烟完成。
+- **下一步：** 完成静态检查后推送并记录第三次 Run 的配置校验、TUN 路由和连通性结果。
+
 ### WL-0057 — Linux CI 重试与测试参数契约修正
 
 - **状态：** FAIL

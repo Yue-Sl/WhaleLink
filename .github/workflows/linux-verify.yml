@@ -29,6 +29,7 @@ jobs:
       EASYTIER_TEST_RELAY: ${{ vars.WHALELINK_TEST_RELAY }}
       EASYTIER_TEST_NETWORK: ${{ vars.WHALELINK_TEST_NETNAME }}
       EASYTIER_TEST_PEER: ${{ vars.WHALELINK_TEST_PEER }}
+      EASYTIER_TEST_IPV4: ${{ vars.WHALELINK_TEST_IPV4 }}
       EASYTIER_TEST_SECRET: ${{ secrets.WHALELINK_TEST_SECRET }}
     steps:
       - uses: actions/checkout@v4

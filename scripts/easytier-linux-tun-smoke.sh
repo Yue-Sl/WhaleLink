@@ -24,6 +24,13 @@ required EASYTIER_TEST_PEER
 [[ "$EASYTIER_TEST_SECRET" =~ ^[[:alnum:]_-]{16,256}$ ]] || fail 'invalid network secret configuration'
 [[ "$EASYTIER_TEST_PEER" =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}$ ]] || fail 'invalid peer IPv4 configuration'
 
+ipv4_line=''
+if [[ -n "${EASYTIER_TEST_IPV4:-}" ]]; then
+  [[ "$EASYTIER_TEST_IPV4" =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}/([0-9]|[12][0-9]|3[0-2])$ ]] \
+    || fail 'invalid optional EasyTier IPv4 CIDR configuration'
+  ipv4_line="ipv4 = \"$EASYTIER_TEST_IPV4\""
+fi
+
 expected_version="${EASYTIER_EXPECTED_VERSION:-2.6.4}"
 requested_core="${EASYTIER_CORE_PATH:-easytier-core}"
 if [[ "$requested_core" == */* ]]; then
@@ -59,16 +66,23 @@ trap cleanup EXIT INT TERM
 
 umask 077
 cat >"$config" <<EOF
+[network_identity]
 network_name = "$EASYTIER_TEST_NETWORK"
 network_secret = "$EASYTIER_TEST_SECRET"
-dhcp = true
-peers = ["$EASYTIER_TEST_RELAY"]
+
+[[peer]]
+uri = "$EASYTIER_TEST_RELAY"
+
+[flags]
 disable_upnp = true
 console_log_level = "warn"
+$ipv4_line
 EOF
 
 # The secret stays in a mode-0600 temporary file rather than appearing in a
 # process list. Do not print the runtime log: it may contain network metadata.
+sudo -n -- "$core" --config-file "$config" --check-config >/dev/null 2>&1 \
+  || fail 'EasyTier rejected the generated TOML configuration'
 node_pid="$(sudo -n sh -c '
   "$1" --config-file "$2" >"$3" 2>&1 &
   printf "%s" "$!"

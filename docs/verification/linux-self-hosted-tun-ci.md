@@ -21,6 +21,7 @@ Actions 日志、诊断包或本报告：
 | Variable | `WHALELINK_TEST_RELAY` | 受隔离测试环境使用的 TCP Relay URL。 |
 | Variable | `WHALELINK_TEST_NETNAME` | 受隔离测试网络名。 |
 | Variable | `WHALELINK_TEST_PEER` | 覆盖网络中的远程 IPv4 测试对端。 |
+| Variable | `WHALELINK_TEST_IPV4` | 可选；本节点在测试网络使用的固定 IPv4 CIDR。为空时不写入配置。 |
 | Secret | `WHALELINK_TEST_SECRET` | 受隔离测试网络密钥；仅注入该工作流运行环境。 |
 
 工作流不会在 fork PR 上运行，以免将自托管 Runner 或测试密钥暴露给不受信任代码。脚本不回显
@@ -57,6 +58,13 @@ Runner 主机名、Relay、网络名、密钥、对端地址、MAC、路由表�
 API 仅返回 TUN 脚本的退出码，无法安全判定受保护配置、EasyTier、TUN 路由或远端对等端中的
 具体根因。必须从仓库管理员可访问的原始步骤中提取非敏感错误末段并修复，再以一次完整 PASS
 取代本结果。
+
+## 第三次远程执行（待触发）
+
+脚本生成的配置已按 EasyTier v2 嵌套 TOML 结构改为 `[network_identity]`、`[[peer]]` 与
+`[flags]`；在启动前执行静默 `--check-config`。`WHALELINK_TEST_IPV4` 是可选变量，非空时写入
+`[flags].ipv4`。真实值不会写入 Git 或本报告。第三次 Run 必须先通过该配置校验，再报告 TUN
+路由与对端 ICMP 的实际结果。
 
 ## 入库前静态验证
 
