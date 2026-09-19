@@ -32,8 +32,10 @@ systemd 部署时，安装 `deploy/whalelink-server.service`，将二进制放�
 
 Windows 发行目录提供便携 ZIP 与当前用户安装 ZIP。安装或解压后：
 
-1. 启动 `whalelinkd`，传入一个只含 EasyTier 可执行文件绝对路径的本地 TOML。示例见
-   `config/whalelink.example.toml`；不要填写网络或服务端信息。
+1. 首版便携包可直接以管理员身份运行 `Connect-WhaleLink.ps1`，按提示输入管理员提供的网络名、
+   Relay、密钥和可选虚拟 IPv4。脚本只在当前进程环境中传递密钥，不写入文件或日志。也可启动
+   `whalelinkd`，传入一个只含 EasyTier 可执行文件绝对路径的本地 TOML；示例见
+   `config/whalelink.example.toml`，不要填写网络或服务端信息。
 2. 启动桌面端，输入由管理员公布的控制面 HTTPS 地址和一次性邀请码。
 3. 兑换后，客户端把材料以当前用户 DPAPI 保存，并可在守护进程运行时立即导入。
 4. 桌面端可使用兑换所得房间 ID 启动/停止连接；CLI 也提供 `whalelink status`、

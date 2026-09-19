@@ -17,6 +17,26 @@
 
 ## 任务记录
 
+### WL-0065 — 首版配置驱动联机入口与 Windows 发行物
+
+- **状态：** PASS
+- **目标与前置条件：** 部署者要求将工作收敛到“首版能正常联机”，暂停非必要的服务器、CI 与外部协作；产品不得硬编码任何部署者网络参数。
+- **改动：** 新增 `whalelinkd connect` 运行时连接入口和发行包内的 `Connect-WhaleLink.ps1` 管理员连接脚本；脚本交互读取密钥并仅向当前进程环境传递。守护进程从 EasyTier 运行时目录启动子进程；控制面只拒绝空密钥，保持与上游可接受配置兼容。Windows 打包流程加入连接脚本。
+- **关键命令：** `cargo build --release --package whalelinkd`；`cargo test --workspace --locked -- --skip dpapi_round_trip_preserves_enrollment_without_plaintext_storage`；`scripts/package-windows.ps1`；PowerShell 语法及发行物内容检查。
+- **验证证据：** [`docs/verification/2026-09-19-v1-connection-release.md`](verification/2026-09-19-v1-connection-release.md)。所有非环境专属工作区测试与 Windows 打包通过；便携包和安装包均已生成并包含连接入口、守护进程和已校验 EasyTier 运行时。
+- **风险/阻塞：** Windows 创建真实 TUN 必须在提升权限下运行；首版脚本已显式要求管理员权限。当前受限会话无法访问其 DPAPI 用户配置，因此该单项测试跳过；没有把真实 TUN 连通性虚报为已验收。
+- **下一步：** 使用发行包在管理员 PowerShell 下输入部署者自己的参数，完成“启动连接→对端业务连通”验收；随后再作为独立后置事项处理服务器部署与 CI。
+
+### WL-0064 — 直接 SSH 服务器验收与 CI 根因复核
+
+- **状态：** IN PROGRESS
+- **目标与前置条件：** 部署者已要求暂停服务器 AI 文件对接，改由本地工程端经既有 SSH 别名直接检查并处理服务器事务；不得以重复运行替代诊断。
+- **改动：** 已以只读方式确认 SSH 连通、Docker/EasyTier 工具与 GitHub Actions Runner 服务可用；确认 Runner 保留检出为早期工作流版本，不能代表当前默认分支。下一步将在服务器临时目录中检出当前默认分支，仅验证不依赖受保护测试输入的 Server Docker 构建，不修改 Runner 工作目录、现网 EasyTier 服务或 GitHub 配置。
+- **关键命令：** 通过 SSH 执行身份、工具、Runner 状态、容器镜像和工作流检出版本的只读检查。
+- **验证证据：** 详见 [`docs/verification/2026-09-19-direct-ssh-diagnostics.md`](verification/2026-09-19-direct-ssh-diagnostics.md)。Runner 服务为 active，存在本地 Rust 基础镜像和旧 Server 镜像缓存；当前本地 `main` 的工作流为手动触发、60 分钟上限，而 Runner 留存检出仍为早期自动触发、30 分钟上限。服务器未检测到可用 GitHub CLI 认证，因此尚未触发或查询新的 Actions Run。首次隔离构建在 Docker 参数解析阶段以 exit 125 失败：服务器为 legacy builder，不能接受诊断命令附加的 `--progress`；该参数不在 CI 工作流中，故未进入源码构建且不构成 CI 根因。随后使用与 CI 完全一致的参数对当前提交启动唯一隔离构建：已完成依赖索引下载并进入 Rust crate 编译，日志持续增长，无代码、权限或网络拒绝错误。
+- **风险/阻塞：** 服务器仅 2 个可用 CPU，系统负载高于核数，冷缓存依赖构建明显缓慢；该预热过程仍在进行，尚未把镜像构建标记为 PASS。真实 TUN 验收依赖受保护 GitHub 输入；在没有新的失败阶段证据前不得重跑。检查命令或日志中出现的敏感运行参数不再保存或复述。
+- **下一步：** 等待当前唯一隔离构建完成并确认 Docker layer cache 是否落盘；随后只需由仓库管理员在认证环境手动 dispatch 当前 `main` 的 Linux 工作流，再分别记录镜像构建与真实 TUN 结果。
+
 ### WL-0063 — Rust Docker 依赖层缓存与 CI 超时兜底
 
 - **状态：** IN PROGRESS

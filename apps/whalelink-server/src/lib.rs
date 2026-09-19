@@ -106,10 +106,10 @@ fn load_rooms_from_toml(
                         ),
                     )
                 })?;
-            if network_secret.trim().len() < 32 {
+            if network_secret.trim().is_empty() {
                 return Err(std::io::Error::new(
                     std::io::ErrorKind::InvalidInput,
-                    "network secret must contain at least 32 non-whitespace characters",
+                    "network secret must not be empty",
                 ));
             }
             Ok(RoomDefinition {

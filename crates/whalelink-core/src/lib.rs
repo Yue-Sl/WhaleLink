@@ -131,11 +131,22 @@ impl EasyTierProcess {
         if self.child.is_some() {
             return Err(CoreError::AlreadyRunning);
         }
-        let child = Command::new(&self.config.executable)
+        let working_directory = self
+            .config
+            .executable
+            .parent()
+            .filter(|path| !path.as_os_str().is_empty());
+        let mut command = Command::new(&self.config.executable);
+        if let Some(directory) = working_directory {
+            // EasyTier ships native helper DLLs beside easytier-core. Running
+            // from that directory makes the portable package self-contained.
+            command.current_dir(directory);
+        }
+        let child = command
             .args(&self.config.arguments)
             .stdin(Stdio::null())
             .stdout(Stdio::null())
-            .stderr(Stdio::piped())
+            .stderr(Stdio::inherit())
             .spawn()?;
         self.child = Some(child);
         Ok(())

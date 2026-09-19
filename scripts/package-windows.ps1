@@ -59,6 +59,7 @@ Expand-Archive -LiteralPath $asset -DestinationPath (Join-Path $outputPath 'port
 Copy-Item (Join-Path $root 'LICENSE') (Join-Path $outputPath 'portable')
 Copy-Item (Join-Path $root 'THIRD_PARTY_NOTICES.md') (Join-Path $outputPath 'portable')
 Copy-Item (Join-Path $root 'README.md') (Join-Path $outputPath 'portable')
+Copy-Item (Join-Path $root 'scripts\Connect-WhaleLink.ps1') (Join-Path $outputPath 'portable')
 New-Item -ItemType Directory -Force -Path (Join-Path $outputPath 'portable\docs') | Out-Null
 Copy-Item (Join-Path $root 'docs\DEPLOYMENT.md') (Join-Path $outputPath 'portable\docs')
 New-Item -ItemType Directory -Force -Path (Join-Path $outputPath 'portable\licenses') | Out-Null
