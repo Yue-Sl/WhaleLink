@@ -19,13 +19,22 @@
 
 ### WL-0067 — 本机发行包试运行与子进程清理修复
 
-- **状态：** PARTIAL
+- **状态：** PASS
 - **目标与前置条件：** 部署者要求在本机试运行首版、定位并修复实际 bug；不得影响现网 EasyTier 服务或保存部署参数。
 - **改动：** 修复 `whalelinkd` 被强制结束时遗留 EasyTier 子进程的问题：Windows 下创建带 `KILL_ON_JOB_CLOSE` 限制的 Job Object 并将子进程加入。新增提升权限下的随机 TUN 冒烟脚本，修复其 PowerShell 参数兼容性与失败清理逻辑。
 - **关键命令：** 发行包随机双节点 `--no-tun` 连接/RPC 测试；强制结束守护进程后的子进程存活检查；Cargo 构建与回归；Windows 打包。
-- **验证证据：** [`docs/verification/2026-09-19-local-release-smoke.md`](verification/2026-09-19-local-release-smoke.md)。发行包实际启动/连接/RPC 通过；强制退出后的子进程清理通过。管理员 TUN 的同机 ICMP 结果不具备远端联机结论，未标记通过。
-- **风险/阻塞：** 自动化会话无法稳定获得 UAC 提升进程的结果回传；仍需在交互式管理员桌面以发行包连接一个独立远端对端，验证实际业务端口。
-- **下一步：** 用桌面交付包在管理员 PowerShell 中输入部署者自身参数，连接独立服务器对端并验证业务流量；该步骤完成后关闭真实 TUN 验收门禁。
+- **验证证据：** [`docs/verification/2026-09-19-local-release-smoke.md`](verification/2026-09-19-local-release-smoke.md) 与 [`docs/verification/2026-09-19-cross-machine-acceptance.md`](verification/2026-09-19-cross-machine-acceptance.md)。发行包实际启动/连接/RPC 通过；强制退出后的子进程清理通过；部署者确认独立客户端与服务器对端的隔离跨机联机验收 PASS。专属子进程监听检查还确认 `--no-listener` 未监听 11010，仅保留显式本机 RPC 端口。
+- **风险/阻塞：** 自动化会话无法稳定获得 UAC 提升进程的结果回传，但跨机验收已由部署者确认通过。GUI 邀请码流程仍以 HTTPS 控制面部署为前置条件，不阻塞首版配置驱动直连。
+- **下一步：** 部署 M2 HTTPS 控制面后，执行 GUI 邀请码兑换→DPAPI 保存→本地守护进程连接的端到端验收。
+
+### WL-0068 — M2 GUI 邀请码流程部署前置
+
+- **状态：** PLANNED
+- **目标与前置条件：** 桌面端邀请码导入/兑换流程需要可访问的 HTTPS WhaleLink 控制面、固定房间和管理员令牌；当前首版直连功能已验收，不以该流程作为上线阻塞。
+- **改动：** 无代码改动。确认 GUI 已具备导入邀请码、兑换、保存受保护凭据、导入本地守护进程及启动连接的调用链。
+- **验证证据：** [`docs/verification/2026-09-19-cross-machine-acceptance.md`](verification/2026-09-19-cross-machine-acceptance.md)。
+- **风险/阻塞：** 控制面尚未部署时，GUI 无法完成邀请码兑换；管理员令牌与网络材料不得写入客户端或仓库。
+- **下一步：** M2 控制面部署后，以独立邀请码执行 GUI 端到端验收。
 
 ### WL-0066 — 首版用户交付目录与使用说明
 
