@@ -32,9 +32,10 @@ enum Command {
         /// Optional EasyTier virtual IPv4 address, for example 10.0.0.20/24.
         #[arg(long)]
         ipv4: Option<String>,
-        /// Local RPC portal used for status checks; bind it to loopback.
-        #[arg(long, default_value = "127.0.0.1:15910")]
-        rpc_portal: String,
+        /// Optional local RPC portal used for EasyTier diagnostics. Omit it
+        /// for ordinary connections so no management port is bound.
+        #[arg(long)]
+        rpc_portal: Option<String>,
         #[arg(long)]
         no_listener: bool,
         /// Disables TUN creation for diagnostics only.
@@ -108,7 +109,7 @@ async fn connect(
     secret_env: String,
     relay: String,
     ipv4: Option<String>,
-    rpc_portal: String,
+    rpc_portal: Option<String>,
     no_listener: bool,
     no_tun: bool,
 ) -> anyhow::Result<()> {
@@ -136,11 +137,12 @@ async fn connect(
         "true".to_owned(),
         "--console-log-level".to_owned(),
         "warn".to_owned(),
-        "--rpc-portal".to_owned(),
-        rpc_portal,
         "-p".to_owned(),
         relay,
     ];
+    if let Some(rpc_portal) = rpc_portal {
+        arguments.extend(["--rpc-portal".to_owned(), rpc_portal]);
+    }
     if let Some(ipv4) = ipv4 {
         arguments.extend(["-i".to_owned(), ipv4]);
     }
