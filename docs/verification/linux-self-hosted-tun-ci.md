@@ -44,16 +44,19 @@ Runner 主机名、Relay、网络名、密钥、对端地址、MAC、路由表�
 根因，也不复制可能含环境信息的原始日志。修复需要该步骤的非敏感错误末段或已认证终端的同等
 构建输出；随后必须重跑工作流并以实际 TUN PASS 取代本状态。
 
-## 第二次远程执行（进行中）
+## 第二次远程执行（2026-09-19）
 
 - 提交：`5c121dfa5365c7d5b92ce09b394746f3983b11a3`；
 - Run：`35407188078`，URL：`https://github.com/Yue-Sl/WhaleLink/actions/runs/35407188078`；
 - 该次提交将仓库 Variable 契约更正为部署者指定的 `WHALELINK_TEST_NETNAME`；
-- 截至 2026-09-18 的状态查询：前置检查 PASS，`Build Server image` 为 IN PROGRESS，真实
-  TUN 步骤为 PENDING。
+- 前置检查：PASS；
+- `Build Server image`：PASS；
+- `Verify real EasyTier TUN peer path`：FAIL（退出码 1）。
 
-该项尚无构建或 TUN 的完成结论；后续记录必须使用 Actions 的最终状态，不可由部署者的缓存
-预期替代。
+这证明服务器本地 Rust 镜像缓存已使镜像构建门禁通过，但不证明真实覆盖网络可达。公开 Checks
+API 仅返回 TUN 脚本的退出码，无法安全判定受保护配置、EasyTier、TUN 路由或远端对等端中的
+具体根因。必须从仓库管理员可访问的原始步骤中提取非敏感错误末段并修复，再以一次完整 PASS
+取代本结果。
 
 ## 入库前静态验证
 
