@@ -23,9 +23,9 @@
 - **目标与前置条件：** 恢复 Windows GUI 自动化，以完成 HTTPS 入口已就绪后的邀请码兑换、DPAPI 保存、守护进程启动和真实联机验收。
 - **改动：** 无运行时文件改动；只读检查 `%LOCALAPPDATA%\\OpenAI\\Codex\\runtimes\\cua_node`、manifest、`node_repl.exe` 与两个 `codex-computer-use.exe` 路径，并重试一次 Computer Use 初始化。
 - **关键命令：** 运行时目录/manifest/二进制存在性检查；Computer Use `getState()` 初始化重试。
-- **验证证据：** [`docs/verification/2026-09-19-computer-use-runtime-check.md`](verification/2026-09-19-computer-use-runtime-check.md)。CUA runtime 存在且为 Windows x64 `0.0.16`；helper 仍在写 kernel assets 阶段报路径不存在。
-- **风险/阻塞：** 不能用猜测坐标、终端 UI 自动化或直接 API 调用冒充 GUI 验收；本次 GUI 流程未执行。
-- **下一步：** 用户在 Codex 桌面端重装/更新运行时并完全重启应用；恢复后创建新短期邀请码继续验收。
+- **验证证据：** [`docs/verification/2026-09-19-computer-use-runtime-check.md`](verification/2026-09-19-computer-use-runtime-check.md) 与 [`docs/verification/2026-09-19-computer-use-auth-blocked.md`](verification/2026-09-19-computer-use-auth-blocked.md)。运行时文件存在；重试后初始化改为 `unsupported Codex auth method: apikey`，应用枚举为空。
+- **风险/阻塞：** 不能用猜测坐标、终端 UI 自动化或直接 API 调用冒充 GUI 验收；本次 GUI 流程未执行。服务器端控制面和 HTTPS 入口仍可用。
+- **下一步：** 在 Codex 桌面端完全退出并重新登录/重启，恢复受支持的 Computer Use 会话认证；恢复后使用新的短期邀请码继续验收。
 
 ### WL-0071 — P0 控制面部署与 GUI 邀请码端到端验收
 
