@@ -88,6 +88,18 @@ API 仅返回 TUN 脚本的退出码，无法安全判定受保护配置、EasyT
 结果归因于特定配置字段或远端网络。下一轮需要由具备仓库管理员权限的操作者提供已打码的
 步骤末段，以进行针对性诊断。
 
+## 第四次远程执行（2026-09-19）
+
+- 提交：`bcdaeb0ffb76295bd2adcfe48af06c8eb6a9a96a`；
+- Run：`35414339043`，URL：`https://github.com/Yue-Sl/WhaleLink/actions/runs/35414339043`；
+- 前置检查：PASS；
+- `Build Server image`：在工作流 `timeout-minutes: 30` 上限后 CANCELED；
+- `Verify real EasyTier TUN peer path`：SKIPPED。
+
+本次没有执行 EasyTier 配置解析、TUN 路由或远端 ICMP，故不能用其判断测试网段、嵌套 TOML 或
+外部对端的有效性。必须取得已打码的 Docker 构建末尾日志，判断是镜像拉取、依赖下载/编译、
+Docker daemon 还是其他构建阶段停滞，再作针对性缓存或构建策略修复。
+
 ## 入库前静态验证
 
 - 已运行 `git diff --check`，通过；

@@ -19,13 +19,13 @@
 
 ### WL-0061 — 隔离测试节点成员可见性与 CI 重跑准备
 
-- **状态：** IN PROGRESS
+- **状态：** BLOCKED
 - **目标与前置条件：** WL-0059 已启动独立 Windows 测试节点。下一步验证其本地可观测性，并准备在服务器侧确认成员可见性与在更新后的 Actions Variables 下重跑 Linux TUN 门禁。
 - **改动：** 待检查本机 EasyTier CLI 能力和可用的服务器/GitHub 管理访问路径；不改变现网服务或受保护测试值。
 - **关键命令：** EasyTier CLI 帮助与只读状态查询；本地 GitHub/服务器工具可用性检查；GitHub Actions Run 只读查询。
-- **验证证据：** 测试节点 PID `62300` 与服务节点 PID `58924` 在 WL-0059 结束时均存活。本机默认 EasyTier RPC 可响应，但返回内容不匹配测试节点身份或预期测试地址，说明默认 RPC 由另一实例占用，不能证明新节点的 Relay 加入或成员可见性。部署者已确认新的 CI 地址 Variables 已更新；实际服务器成员查询和新网段 CI 结果待重跑验证。
-- **风险/阻塞：** 新测试节点未分配独立 RPC portal；本机不能安全地区分其 RPC 状态。服务器 CLI 验证需要服务器侧受控访问；本机无 GitHub CLI 或登录态，不能调用 `workflow_dispatch`，故以受路径监听的安全输入校验改动触发 Run。不得从本机读取、猜测或输出任何凭据。
-- **下一步：** 推送输入校验加固以触发 Linux TUN 门禁；记录最终 Run 结果。若仍失败，再请求服务器侧的已打码成员结论或受控 SSH 访问。
+- **验证证据：** 测试节点 PID `62300` 与服务节点 PID `58924` 在 WL-0059 结束时均存活。本机默认 EasyTier RPC 可响应，但返回内容不匹配测试节点身份或预期测试地址，说明默认 RPC 由另一实例占用，不能证明新节点的 Relay 加入或成员可见性。部署者已确认新的 CI 地址 Variables 已更新。提交 `bcdaeb0ffb76295bd2adcfe48af06c8eb6a9a96a` 触发 Run `35414339043`（`https://github.com/Yue-Sl/WhaleLink/actions/runs/35414339043`）：前置检查 PASS；`Build Server image` 运行 30 分钟后被工作流超时取消；TUN 步骤 SKIPPED。
+- **风险/阻塞：** 这次取消发生在 Docker 构建，尚未执行 EasyTier 配置或真实 TUN 测试，不能将失败归因于 TOML、测试网段或外部对端。新测试节点未分配独立 RPC portal；服务器 CLI 验证需要服务器侧受控访问。详细 Docker 卡点需要仓库管理员可访问的构建日志；不得从本机读取、猜测或输出任何凭据。
+- **下一步：** 从构建步骤提供已打码的末尾日志，定位 Docker 拉取、Cargo 下载/编译或 Docker daemon 等卡点；再决定增加 BuildKit 缓存、预构建镜像或调整超时后重跑。恢复构建门禁后，才继续评估 TUN 结果。
 
 ### WL-0060 — 隔离 TUN 测试网段与节点地址轮换
 
