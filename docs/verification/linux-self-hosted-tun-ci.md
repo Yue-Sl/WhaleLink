@@ -59,12 +59,22 @@ API 仅返回 TUN 脚本的退出码，无法安全判定受保护配置、EasyT
 具体根因。必须从仓库管理员可访问的原始步骤中提取非敏感错误末段并修复，再以一次完整 PASS
 取代本结果。
 
-## 第三次远程执行（待触发）
+## 第三次远程执行（2026-09-19）
 
 脚本生成的配置已按 EasyTier v2 嵌套 TOML 结构改为 `[network_identity]`、`[[peer]]` 与
 `[flags]`；在启动前执行静默 `--check-config`。`WHALELINK_TEST_IPV4` 是可选变量，非空时写入
 `[flags].ipv4`。真实值不会写入 Git 或本报告。第三次 Run 必须先通过该配置校验，再报告 TUN
 路由与对端 ICMP 的实际结果。
+
+- 提交：`39ca2c10aa206b1852d3d07737aad1bc568fdbe3`；
+- Run：`35409779704`，URL：`https://github.com/Yue-Sl/WhaleLink/actions/runs/35409779704`；
+- 前置检查：PASS；
+- `Build Server image`：PASS；
+- `Verify real EasyTier TUN peer path`：FAIL（退出码 1）。
+
+嵌套 TOML 修正后仍未通过真实 TUN 门禁。公开注释没有提供更细的非敏感失败阶段，因此不得将
+结果归因于特定配置字段或远端网络。下一轮需要由具备仓库管理员权限的操作者提供已打码的
+步骤末段，以进行针对性诊断。
 
 ## 入库前静态验证
 

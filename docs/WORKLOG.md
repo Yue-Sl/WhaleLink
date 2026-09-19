@@ -19,13 +19,13 @@
 
 ### WL-0058 — EasyTier v2 嵌套 TOML 配置修正
 
-- **状态：** IN PROGRESS
+- **状态：** FAIL
 - **目标与前置条件：** WL-0057 的真实 TUN 冒烟在镜像构建通过后失败；部署者提供 EasyTier v2 所需的 `network_identity`、`peer` 与 `flags` TOML 结构。
 - **改动：** 待将 Linux 冒烟脚本由旧扁平字段改为嵌套 TOML，增加启动前静默 `--check-config`，并将可选静态 IPv4 作为 Actions Variable 注入，而非硬编码。
 - **关键命令：** `git diff --check`；敏感值扫描；静态脚本结构复核；推送触发指定自托管 Runner。
-- **验证证据：** 部署者提供的配置结构已转换为模板化环境变量路径；真实 Relay、网络名、密钥、对端和静态 IPv4 不写入仓库、日志或本记录。
-- **风险/阻塞：** Windows 开发主机不具备 Bash 或 Linux EasyTier 运行时；嵌套结构的权威验证由下一次受保护 Runner 的 `--check-config` 与真实 TUN 冒烟完成。
-- **下一步：** 完成静态检查后推送并记录第三次 Run 的配置校验、TUN 路由和连通性结果。
+- **验证证据：** 部署者提供的配置结构已转换为模板化环境变量路径；提交 `39ca2c10aa206b1852d3d07737aad1bc568fdbe3` 的 Run `35409779704`（`https://github.com/Yue-Sl/WhaleLink/actions/runs/35409779704`）前置检查 PASS、镜像构建 PASS、真实 TUN 冒烟 FAIL（退出码 1）。真实 Relay、网络名、密钥、对端和静态 IPv4 不写入仓库、日志或本记录。
+- **风险/阻塞：** 公开 Checks API 仍只提供 TUN 步骤的退出码，不能据此断言 `--check-config`、受保护变量、进程启动、TUN 路由或远端 ICMP 中的具体失败点；真实双节点 TUN 发布门禁保持未关闭。
+- **下一步：** 从仓库管理员可访问的 TUN 步骤中提取非敏感失败阶段，优先确认是配置校验、EasyTier 进程存活、TUN 路由还是 ICMP 超时；完成针对性修复后重跑。
 
 ### WL-0057 — Linux CI 重试与测试参数契约修正
 
